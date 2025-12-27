@@ -1,0 +1,35 @@
+# Starlink-like large-scale synthetic generation config (TLE-driven).
+seed: 7
+T: 600
+dt: 1.0
+K_users: 100
+# S_sats is kept for clarity but will be overridden by len(TLE) in ephemeris.mode=skyfield_tle
+S_sats: 2000
+
+ephemeris:
+  mode: skyfield_tle
+  tle_path: data/synthetic_leo_2000.tle
+  start_time_utc: "2025-12-25T00:00:00Z"
+  # Scale km -> normalized units so legacy thresholds remain meaningful:
+  # Earth radius 6371 km -> 0.6371, LEO radius ~ 6920 km -> 0.692
+  pos_scale: 1.0e-4
+  vel_scale: 1.0e-4
+  # Optional realism: place users on an Earth-like sphere (in scaled units)
+  place_users_on_earth: true
+  user_earth_radius_km: 6371.0
+
+cox:
+  shells: []   # fill later
+
+channel:
+  base_sinr: 10.0
+  dist_scale: 5.0
+
+handover:
+  cost_intra_beam: 0.1
+  cost_intra_sat: 0.3
+  cost_inter_sat: 1.0
+
+graph:
+  visibility_radius: 0.12
+  topk: 8

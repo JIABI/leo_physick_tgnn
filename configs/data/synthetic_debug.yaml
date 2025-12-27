@@ -1,0 +1,23 @@
+seed: 7
+T: 200
+K_users: 50
+S_sats: 200
+dt: 1.0
+
+# constellation-ish parameters used by Cox intensity placeholder
+cox:
+  shells:
+    - {P: 72, Q: 22, theta: 0.02, alpha_deg: 53.0, p_feas: 0.7}
+    - {P: 72, Q: 20, theta: 0.015, alpha_deg: 70.0, p_feas: 0.6}
+
+channel:
+  base_sinr: 10.0
+  dist_scale: 5.0
+
+handover:
+  cost_intra_beam: 0.1
+  cost_intra_sat: 0.3
+  cost_inter_sat: 1.0
+
+graph:
+  visibility_radius: 0.7

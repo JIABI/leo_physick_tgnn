@@ -1,0 +1,40 @@
+seed: 7
+
+data:
+  path: "data/starlink_like.pt"
+  split: "train"   # train|val|test
+  num_workers: 0
+  batch_size: 1
+
+model:
+  node_in_dim: 6
+  edge_in_dim: 6   # [P_risk, log1p(ET0), log1p(Lambda), rate, H_norm, load]
+  edge_type_vocab: 8
+  use_edge_type: true
+  mem_dim: 64
+  msg_dim: 64
+  emb_dim: 64
+  message_type: "mlp" # mlp|kan|physick
+  aggregator: "sum"       # sum|mean
+  dropout: 0.0
+
+head:
+  type: "forecast"    # forecast|ranking
+  out_dim: 1          # forecast satellite load (debug); replace with your target
+  user_count: 50      # for synthetic graphs (debug)
+  sat_count: 200
+
+train:
+  task: "one_step"     # one_step|rollout_teacher_forcing
+  epochs: 10
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  clip_grad_norm: 1.0
+  device: "cuda"
+  log_every: 20
+  edge_chunk: 30000
+  save_dir: runs
+  run_name: tgn_2000
+
+eval:
+  rollout_horizon: 30
