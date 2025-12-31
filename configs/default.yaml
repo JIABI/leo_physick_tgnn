@@ -1,7 +1,7 @@
 seed: 7
 
 data:
-  path: "data/starlink_like.pt"
+  path: "data/starlink_like_2000.pt"
   split: "train"   # train|val|test
   num_workers: 0
   batch_size: 1
@@ -17,24 +17,47 @@ model:
   message_type: "mlp" # mlp|kan|physick
   aggregator: "sum"       # sum|mean
   dropout: 0.0
+  physick:
+    coeff_impl: mlp # mlp/kan
+    mix_impl: dot   # dot/mlp (dot=paper method, mlp = more representation)
+    coeff_hidden: 64
+    coeff_chunk: 256    # multi-users suggest to choose 64~512
+    mix_hidden: 128
 
 head:
   type: "forecast"    # forecast|ranking
   out_dim: 1          # forecast satellite load (debug); replace with your target
-  user_count: 50      # for synthetic graphs (debug)
-  sat_count: 200
+  user_count: 100       # single-user experiment
+  sat_count: 2000
 
 train:
-  task: "one_step"     # one_step|rollout_teacher_forcing
-  epochs: 10
+  # For long-horizon stability, train with teacher-forcing rollout loss.
+  task: "rollout_teacher_forcing"     # one_step|rollout_teacher_forcing
+  epochs: 20
+  horizon: 20
   lr: 1.0e-3
   weight_decay: 1.0e-5
   clip_grad_norm: 1.0
   device: "cuda"
-  log_every: 20
-  edge_chunk: 30000
+  log_every: 2
+  edge_chunk: 1000
   save_dir: runs
-  run_name: tgn_2000
+  run_name: tgn_2000_$message_type$_multi
 
-eval:
-  rollout_horizon: 30
+  # Multi-step loss weighting (closer to "rollout-stability" objective).
+  rollout_horizon: 20        # training horizon (T steps used in loss)
+  multistep_loss:
+    scheme: exp # uniform|poly|exp|milestones
+    beta: 2.0
+    tbptt_steps: 5
+    amp: true
+    power: 1.0                # only for poly: w_t ∝ (t+1)^power
+    exp_beta: 3.0             # only for exp: w_t ∝ exp(beta * t/(T-1))
+    milestones:               # only for milestones: list of {t: step_index_1based, w: weight}
+      - {t: 1,   w: 0.5}
+      - {t: 5,   w: 0.7}
+      - {t: 10,  w: 1.0}
+      - {t: 20,  w: 1.2}
+      - {t: 50,  w: 1.5}
+      - {t: 100, w: 2.0}
+    normalize: true           # normalize weights to sum=1 over used steps

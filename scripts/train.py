@@ -1,154 +1,204 @@
 from __future__ import annotations
 
 import argparse
+
+import os
+
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+
+from typing import Any, Dict, Optional
 
 import torch
+
 from torch.utils.data import DataLoader
 
 from _cfg import load_cfg
+
 from leo_pg.utils.seed import set_seed
+
 from leo_pg.utils.device import get_device
+
 from leo_pg.data.dataset import TemporalEpisodeDataset
+
 from leo_pg.data.collate import collate_episode
+
 from leo_pg.models import build_model
+
 from leo_pg.train import Trainer
-from leo_pg.train.metrics import mse
-from leo_pg.train.rollout import rollout_teacher_forcing
+
+from leo_pg.train.checkpoint import save_ckpt
 
 
-def _default_ckpt_dir(cfg: Dict) -> Path:
-    save_dir = cfg.get("train", {}).get("save_dir", "runs")
-    run_name = cfg.get("train", {}).get("run_name", None)
-    if not run_name:
-        msg = cfg.get("model", {}).get("message_type", "model")
-        run_name = f"{msg}"
-    return Path(save_dir) / str(run_name)
+def _resolve_run_name(cfg: Dict[str, Any], message_type: str, mode: str) -> str:
+    tr = cfg.setdefault("train", {})
 
+    rn = str(tr.get("run_name", "tgn_run"))
 
-def save_checkpoint(path: Path, model: torch.nn.Module, cfg: Dict, metric_name: str, metric_value: float, epoch: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "model_state": model.state_dict(),
-        "epoch": int(epoch),
-        "metric_name": str(metric_name),
-        "metric_value": float(metric_value),
-        "cfg": cfg,
-    }
-    torch.save(payload, str(path))
+    # Replace placeholders
 
+    rn = rn.replace("$message_type$", message_type).replace("{message_type}", message_type)
 
-def load_checkpoint(path: Path, model: torch.nn.Module, device: torch.device) -> Dict:
-    ckpt = torch.load(str(path), map_location=device)
-    model.load_state_dict(ckpt["model_state"], strict=True)
-    return ckpt
+    rn = rn.replace("$mode$", mode).replace("{mode}", mode)
 
+    # If no placeholder was used, append message_type to avoid collisions
 
-@torch.no_grad()
-def eval_one_step_mse(model: torch.nn.Module, dl: DataLoader, device: torch.device, max_batches: Optional[int] = None) -> float:
-    model.eval()
-    vals = []
-    for bi, episode in enumerate(dl):
-        out = model.forward_episode(episode, device=device)
-        pred = out["preds"][-1]
-        y = out["ys"][-1]
-        vals.append(float(mse(pred, y)))
-        if max_batches is not None and (bi + 1) >= max_batches:
-            break
-    return float(sum(vals) / max(1, len(vals)))
+    raw = str(tr.get("run_name", ""))
 
+    if ("$message_type$" not in raw) and ("{message_type}" not in raw) and (not rn.endswith(f"_{message_type}")):
+        rn = f"{rn}_{message_type}"
 
-@torch.no_grad()
-def eval_rollout_teacher_forcing_mse(model: torch.nn.Module, dl: DataLoader, device: torch.device, H: int, max_batches: Optional[int] = None) -> float:
-    model.eval()
-    vals = []
-    for bi, episode in enumerate(dl):
-        r = rollout_teacher_forcing(model, episode, device=device, H=H)
-        vals.append(float(r["mse_mean"]))
-        if max_batches is not None and (bi + 1) >= max_batches:
-            break
-    return float(sum(vals) / max(1, len(vals)))
+    if ("$mode$" not in raw) and ("{mode}" not in raw) and (f"_{mode}_" not in rn) and (not rn.endswith(f"_{mode}")):
+
+        # only append mode if it's non-empty and not already present
+
+        if mode:
+            rn = f"{rn}_{mode}"
+
+    tr["run_name"] = rn
+
+    return rn
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cfg", type=str, required=True)
-    ap.add_argument("--message", type=str, default=None, help="override message_type: mlp|kan|physick")
-    ap.add_argument("--ckpt_dir", type=str, default=None, help="override checkpoint output directory")
-    ap.add_argument("--eval_max_batches", type=int, default=None, help="limit val batches for faster selection")
+
+    ap.add_argument("--cfg", type=str, required=True, help="Path to YAML config")
+
+    ap.add_argument("--message", type=str, default=None, help="Override message_type: mlp|kan|physick")
+
+    ap.add_argument("--data", type=str, default=None, help="Override data path (pt)")
+
+    ap.add_argument("--mode", type=str, default=None, help="Override mode label for run_name (single|multi), optional")
+
     args = ap.parse_args()
 
-    cfg = load_cfg(args.cfg)
+    cfg: Dict[str, Any] = load_cfg(args.cfg)
+
+    # Overrides: message_type
+
     if args.message is not None:
+        cfg.setdefault("model", {})
+
         cfg["model"]["message_type"] = args.message
 
+    # Overrides: data path priority = --data > env DATA_PATH > cfg.data.path
+
+    env_data = os.environ.get("DATA_PATH")
+
+    data_path = args.data or env_data or cfg.get("data", {}).get("path")
+
+    if not data_path:
+        raise ValueError("No data path provided. Set cfg.data.path or pass --data or export DATA_PATH=...")
+
+    cfg.setdefault("data", {})
+
+    cfg["data"]["path"] = data_path
+
+    # Mode label (only for naming)
+
+    env_mode = os.environ.get("MODE")
+
+    mode = args.mode or env_mode or str(cfg.get("train", {}).get("mode", "")).strip()
+
+    # Seed/device
+
     set_seed(int(cfg.get("seed", 7)))
-    device = get_device(cfg["train"]["device"])
 
-    # Datasets
-    train_split = cfg.get("data", {}).get("train_split", "train")
-    val_split = cfg.get("data", {}).get("val_split", "val")
+    device = get_device(str(cfg.get("train", {}).get("device", "cuda")))
 
-    ds_train = TemporalEpisodeDataset(cfg["data"]["path"], split=train_split)
-    dl_train = DataLoader(
-        ds_train,
+    # DataLoader
+
+    split = str(cfg["data"].get("split", "train"))
+
+    ds = TemporalEpisodeDataset(cfg["data"]["path"], split=split)
+
+    dl = DataLoader(
+
+        ds,
+
         batch_size=int(cfg["data"].get("batch_size", 1)),
+
         shuffle=True,
+
         num_workers=int(cfg["data"].get("num_workers", 0)),
+
         collate_fn=collate_episode,
+
     )
 
-    ds_val = TemporalEpisodeDataset(cfg["data"]["path"], split=val_split)
-    dl_val = DataLoader(ds_val, batch_size=1, shuffle=False, num_workers=0, collate_fn=collate_episode)
+    # Model
 
     model = build_model(cfg).to(device)
 
+    # Run directory
+
+    save_dir = Path(cfg.get("train", {}).get("save_dir", "runs"))
+
+    msg = str(cfg.get("model", {}).get("message_type", "mlp"))
+
+    run_name = _resolve_run_name(cfg, msg, mode)
+
+    run_dir = save_dir / run_name
+
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    # Print the *actual* data path and run info
+
+    print(f"[RUN] mode={mode or '-'} message_type={msg}")
+
+    print(
+        f"[DATA] path={cfg['data']['path']} split={split} batch_size={cfg['data'].get('batch_size', 1)} workers={cfg['data'].get('num_workers', 0)}")
+
+    print(f"[OUT]  dir={run_dir}")
+
+    # Trainer
+
     tr = Trainer(
+
         model=model,
+
         device=device,
+
         lr=float(cfg["train"]["lr"]),
-        weight_decay=float(cfg["train"]["weight_decay"]),
-        clip_grad_norm=float(cfg["train"]["clip_grad_norm"]),
+
+        weight_decay=float(cfg["train"].get("weight_decay", 0.0)),
+
+        clip_grad_norm=float(cfg["train"].get("clip_grad_norm", 1.0)),
+
         log_every=int(cfg["train"].get("log_every", 20)),
+
     )
 
-    task = cfg["train"].get("task", "one_step")
-    epochs = int(cfg["train"]["epochs"])
-    rollout_H = int(cfg.get("eval", {}).get("rollout_horizon", 30))
+    # Train
 
-    ckpt_dir = Path(args.ckpt_dir) if args.ckpt_dir else _default_ckpt_dir(cfg)
-    best_path = ckpt_dir / "best.pt"
-    last_path = ckpt_dir / "last.pt"
+    task = str(cfg.get("train", {}).get("task", "one_step"))
 
-    best_metric = float("inf")
-    best_epoch = -1
+    epochs = int(cfg.get("train", {}).get("epochs", 10))
 
-    # Train epoch-by-epoch to enable best checkpointing without modifying Trainer internals.
-    for ep in range(1, epochs + 1):
-        if task == "one_step":
-            tr.train_one_step(dl_train, epochs=1)
-            val = eval_one_step_mse(model, dl_val, device=device, max_batches=args.eval_max_batches)
-            metric_name = "val_one_step_mse"
-        elif task == "rollout_teacher_forcing":
-            tr.train_rollout_teacher_forcing(dl_train, epochs=1, horizon=rollout_H)
-            val = eval_rollout_teacher_forcing_mse(model, dl_val, device=device, H=rollout_H, max_batches=args.eval_max_batches)
-            metric_name = f"val_rollout_mse_mean@{rollout_H}"
-        else:
-            raise ValueError(f"Unknown train.task={task}")
+    if task == "one_step":
 
-        # Save last every epoch (lightweight + useful for debugging)
-        save_checkpoint(last_path, model=model, cfg=cfg, metric_name=metric_name, metric_value=val, epoch=ep)
+        tr.train_one_step(dl, epochs=epochs)
 
-        if val < best_metric:
-            best_metric = val
-            best_epoch = ep
-            save_checkpoint(best_path, model=model, cfg=cfg, metric_name=metric_name, metric_value=val, epoch=ep)
+    elif task == "rollout_teacher_forcing":
 
-        print(f"[CKPT] epoch={ep:03d} {metric_name}={val:.6g} best={best_metric:.6g} (epoch {best_epoch})  dir={ckpt_dir}")
+        horizon = int(cfg.get("train", {}).get("horizon", cfg.get("eval", {}).get("rollout_horizon", 30)))
 
-    print(f"[DONE] best checkpoint: {best_path}  ({metric_name}={best_metric:.6g} at epoch {best_epoch})")
+        multistep_loss_cfg = cfg.get("train", {}).get("multistep_loss", None)
+
+        tr.train_rollout_teacher_forcing(dl, epochs=epochs, horizon=horizon, multistep_loss_cfg=multistep_loss_cfg)
+
+    else:
+
+        raise ValueError(f"Unknown train.task={task}")
+
+    # Save last checkpoint (always)
+
+    save_ckpt(str(run_dir / "last.pt"), model=model, opt=tr.opt, epoch=epochs)
+
+    print(f"[CKPT] saved: {run_dir / 'last.pt'}")
 
 
 if __name__ == "__main__":
     main()
+
+

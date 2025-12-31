@@ -55,6 +55,8 @@ class KernelBank(nn.Module):
         super().__init__()
         self.edge_dim = int(edge_dim)
         self.num_kernels = int(num_kernels)
+        # Public alias used by some call-sites.
+        self.M: int = int(self.num_kernels)
         self.eps = float(eps)
 
         # Risk breakpoints (ρ1 < ρ2). Keep as parameters so you can tune/calibrate.
@@ -116,8 +118,13 @@ class KernelBank(nn.Module):
             Γ = Γ_L*(1-w1) + Γ_M*(w1-w2) + Γ_H*w2
         """
         s = torch.nn.functional.softplus(self.gate_scale) + 1.0  # positive
-        rho1 = torch.clamp(self.rho1, 1e-3, 1.0 - 1e-3)
-        rho2 = torch.clamp(self.rho2, rho1 + 1e-3, 1.0 - 1e-3)
+        # Make sure bounds are tensor-compatible for torch.clamp
+        eps = 1e-3
+        rho1 = torch.clamp(self.rho1, eps, 1.0 - 2 * eps)  # number bounds OK
+
+        # max bound must be a Tensor if min bound is Tensor
+        max_rho = torch.tensor(1.0 - eps, device=rho1.device, dtype=rho1.dtype)
+        rho2 = torch.clamp(self.rho2, min=rho1 + eps, max=max_rho)
 
         w1 = torch.sigmoid(s * (p_risk - rho1))
         w2 = torch.sigmoid(s * (p_risk - rho2))

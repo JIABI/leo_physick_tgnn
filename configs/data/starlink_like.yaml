@@ -2,13 +2,13 @@
 seed: 7
 T: 600
 dt: 1.0
-K_users: 100
+K_users: 50
 # S_sats is kept for clarity but will be overridden by len(TLE) in ephemeris.mode=skyfield_tle
-S_sats: 2000
+S_sats: 1000
 
 ephemeris:
   mode: skyfield_tle
-  tle_path: data/synthetic_leo_2000.tle
+  tle_path: data/synthetic_leo_500.tle
   start_time_utc: "2025-12-25T00:00:00Z"
   # Scale km -> normalized units so legacy thresholds remain meaningful:
   # Earth radius 6371 km -> 0.6371, LEO radius ~ 6920 km -> 0.692
@@ -24,6 +24,7 @@ cox:
 channel:
   base_sinr: 10.0
   dist_scale: 5.0
+  sinr_min: -1.0
 
 handover:
   cost_intra_beam: 0.1
@@ -31,5 +32,11 @@ handover:
   cost_inter_sat: 1.0
 
 graph:
-  visibility_radius: 0.12
+  include_sat_sat: true
+  sat_sat_radius: 0.5
+  visibility_radius: 2.0
   topk: 8
+
+load:
+  sat_capacity_users: 10
+  momentum: 0.8
