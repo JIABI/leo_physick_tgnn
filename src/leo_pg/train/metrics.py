@@ -10,9 +10,20 @@ def load_variance(pred_load: torch.Tensor, K_users: int, S_sats: int) -> float:
     return float(torch.var(sat).item())
 
 def ping_pong_rate(actions: torch.Tensor) -> float:
-    # Placeholder: compute rate of alternation in chosen sat id per user
-    # actions: [T, K] int
-    if actions.numel() == 0:
+    """Legacy alias: return the dimensionless valid-triplet A->B->A fraction.
+
+    This is not the manuscript's time-windowed ping-pong event rate.
+    """
+    if actions.ndim != 2:
+        raise ValueError("actions must have shape [T,K]")
+    if actions.size(0) < 3:
         return 0.0
-    changes = (actions[1:] != actions[:-1]).float().mean()
-    return float(changes.item())
+    a = actions[:-2]
+    b = actions[1:-1]
+    c = actions[2:]
+    valid = (a >= 0) & (b >= 0) & (c >= 0)
+    denominator = int(valid.sum().item())
+    if denominator == 0:
+        return 0.0
+    ping = valid & (a == c) & (a != b)
+    return float(ping.sum().item()) / float(denominator)

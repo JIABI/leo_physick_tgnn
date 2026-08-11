@@ -18,8 +18,10 @@ model:
   aggregator: "sum"       # sum|mean
   dropout: 0.0
   physick:
+    num_kernels: 16
+    projection_radius: 1.0
     coeff_impl: mlp # mlp/kan
-    mix_impl: dot   # dot/mlp (dot=paper method, mlp = more representation)
+    mix_impl: dot   # dot=bounded linear mixture; mlp=unbounded nonlinear mixer
     coeff_hidden: 64
     coeff_chunk: 256    # multi-users suggest to choose 64~512
     mix_hidden: 128
@@ -27,11 +29,12 @@ model:
 head:
   type: "forecast"    # forecast|ranking
   out_dim: 1          # forecast satellite load (debug); replace with your target
+  output_activation: "sigmoid"
   user_count: 100       # single-user experiment
   sat_count: 2000
 
 train:
-  # For long-horizon stability, train with teacher-forcing rollout loss.
+  # Multi-step teacher-forced sequence objective; not closed-loop stability.
   task: "rollout_teacher_forcing"     # one_step|rollout_teacher_forcing
   epochs: 20
   horizon: 20
@@ -44,7 +47,7 @@ train:
   save_dir: runs
   run_name: tgn_2000_$message_type$_multi
 
-  # Multi-step loss weighting (closer to "rollout-stability" objective).
+  # Multi-step weighting for the teacher-forced sequence objective.
   rollout_horizon: 20        # training horizon (T steps used in loss)
   multistep_loss:
     scheme: exp # uniform|poly|exp|milestones

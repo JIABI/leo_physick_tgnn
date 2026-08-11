@@ -16,12 +16,24 @@ class SimpleKinematicEphemeris:
     For real LEO satellites, use `SkyfieldTLEEphemeris` (SGP4) below.
     """
     def __init__(self, pos0: torch.Tensor, vel0: torch.Tensor):
-        self.pos = pos0.clone()
-        self.vel = vel0.clone()
+        self._pos0 = pos0.clone()
+        self._vel0 = vel0.clone()
+        self.reset()
+
+    def reset(self) -> None:
+        self.pos = self._pos0.clone()
+        self.vel = self._vel0.clone()
 
     def step(self, dt: float) -> EphemerisState:
         self.pos = self.pos + self.vel * dt
         return EphemerisState(self.pos.clone(), self.vel.clone())
+
+    def state_at(self, offset_seconds: float) -> EphemerisState:
+        """Inspect a future constant-velocity state without advancing time."""
+        offset = float(offset_seconds)
+        if offset < 0:
+            raise ValueError("offset_seconds must be non-negative")
+        return EphemerisState((self.pos + self.vel * offset).clone(), self.vel.clone())
 
 def _ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
@@ -52,7 +64,8 @@ class SkyfieldTLEEphemeris:
             ) from e
 
         self._ts = load.timescale()
-        self._dt = _ensure_utc(start_time_utc)
+        self._start_time = _ensure_utc(start_time_utc)
+        self._dt = self._start_time
         self._device = device
 
         sats = []
@@ -69,13 +82,19 @@ class SkyfieldTLEEphemeris:
             raise ValueError("tle_records is empty.")
         self._sats = sats
 
+    def reset(self) -> None:
+        self._dt = self._start_time
+
     @property
     def t_utc(self) -> datetime:
         return self._dt
 
     def step(self, dt_seconds: float) -> EphemerisState:
         self._dt = self._dt + timedelta(seconds=float(dt_seconds))
-        t = self._ts.from_datetime(self._dt)
+        return self._state_at_datetime(self._dt)
+
+    def _state_at_datetime(self, timestamp: datetime) -> EphemerisState:
+        t = self._ts.from_datetime(timestamp)
 
         pos_list = []
         vel_list = []
@@ -89,24 +108,55 @@ class SkyfieldTLEEphemeris:
         vel = torch.stack(vel_list, dim=0)  # [S,3]
         return EphemerisState(pos=pos, vel=vel)
 
+    def state_at(self, offset_seconds: float) -> EphemerisState:
+        """Inspect an SGP4 state without mutating the ephemeris clock."""
+        offset = float(offset_seconds)
+        if offset < 0:
+            raise ValueError("offset_seconds must be non-negative")
+        return self._state_at_datetime(self._dt + timedelta(seconds=offset))
+
+def _validate_tle_pair(line1: str, line2: str, line1_number: int, line2_number: int) -> None:
+    for line, prefix, line_number in ((line1, "1 ", line1_number), (line2, "2 ", line2_number)):
+        if not line.startswith(prefix):
+            raise ValueError(f"Malformed TLE line {line_number}: expected prefix {prefix!r}")
+        if len(line) != 69:
+            raise ValueError(f"Malformed TLE line {line_number}: expected 69 characters, got {len(line)}")
+        checksum = sum(int(char) for char in line[:68] if char.isdigit()) + line[:68].count("-")
+        if not line[-1].isdigit() or checksum % 10 != int(line[-1]):
+            raise ValueError(f"Invalid TLE checksum at line {line_number}")
+    if line1[2:7] != line2[2:7]:
+        raise ValueError(
+            f"TLE satellite numbers differ at lines {line1_number} and {line2_number}"
+        )
+
+
 def load_tle_file(path: str) -> List[Tuple[str, str, str]]:
-    """Load 3-line (name+2) or 2-line TLE file -> (name,line1,line2) list."""
-    lines = [ln.strip() for ln in open(path, "r", encoding="utf-8") if ln.strip()]
+    """Strictly load complete 3-line (name+2) or 2-line TLE records."""
+    with open(path, "r", encoding="utf-8") as handle:
+        lines = [(number, text.strip()) for number, text in enumerate(handle, start=1) if text.strip()]
     out: List[Tuple[str, str, str]] = []
     i = 0
     while i < len(lines):
-        if lines[i].startswith("1 ") and i + 1 < len(lines) and lines[i + 1].startswith("2 "):
+        line_number, text = lines[i]
+        if text.startswith("1 "):
+            if i + 1 >= len(lines):
+                raise ValueError(f"Truncated two-line TLE record at line {line_number}")
+            line2_number, line2 = lines[i + 1]
             name = f"SAT_{len(out)}"
-            out.append((name, lines[i], lines[i + 1]))
+            _validate_tle_pair(text, line2, line_number, line2_number)
+            out.append((name, text, line2))
             i += 2
         else:
             if i + 2 >= len(lines):
-                break
-            name, l1, l2 = lines[i], lines[i + 1], lines[i + 2]
-            if not (l1.startswith("1 ") and l2.startswith("2 ")):
-                raise ValueError(f"Malformed TLE at lines {i}-{i+2}")
+                raise ValueError(f"Truncated three-line TLE record at line {line_number}")
+            name = text
+            line1_number, l1 = lines[i + 1]
+            line2_number, l2 = lines[i + 2]
+            _validate_tle_pair(l1, l2, line1_number, line2_number)
             out.append((name, l1, l2))
             i += 3
+    if not out:
+        raise ValueError(f"No TLE records found in {path}")
     return out
 
 class HybridUserSatEphemeris:
@@ -122,8 +172,21 @@ class HybridUserSatEphemeris:
         self.user = SimpleKinematicEphemeris(user_pos0.to(device), user_vel0.to(device))
         self.sat = SkyfieldTLEEphemeris(tle_records=tle_records, start_time_utc=start_time_utc, device=device)
 
+    def reset(self) -> None:
+        self.user.reset()
+        self.sat.reset()
+
     def step(self, dt_seconds: float) -> EphemerisState:
         u = self.user.step(dt_seconds)
         s = self.sat.step(dt_seconds)
         return EphemerisState(pos=torch.cat([u.pos, s.pos], dim=0),
                               vel=torch.cat([u.vel, s.vel], dim=0))
+
+    def state_at(self, offset_seconds: float) -> EphemerisState:
+        """Inspect users and satellites at a common future offset."""
+        u = self.user.state_at(offset_seconds)
+        s = self.sat.state_at(offset_seconds)
+        return EphemerisState(
+            pos=torch.cat([u.pos, s.pos], dim=0),
+            vel=torch.cat([u.vel, s.vel], dim=0),
+        )

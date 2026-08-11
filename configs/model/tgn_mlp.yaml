@@ -1,2 +1,3 @@
+base: ../default.yaml
 model:
   message_type: "mlp"

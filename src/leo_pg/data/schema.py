@@ -1,7 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import torch
+
+DATASET_SCHEMA_VERSION = 2
 
 @dataclass
 class StepGraph:

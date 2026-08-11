@@ -1,1 +1,14 @@
-__all__ = ["data", "sim", "physics", "graph", "models", "kernels", "train", "utils"]
+__all__ = [
+    "control",
+    "data",
+    "eval",
+    "graph",
+    "kernels",
+    "models",
+    "paper",
+    "physics",
+    "sim",
+    "train",
+    "uav_shared",
+    "utils",
+]

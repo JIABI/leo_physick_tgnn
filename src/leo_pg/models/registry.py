@@ -3,7 +3,9 @@ from typing import Dict, Any
 
 from .tgn.tgn import TGN
 from .heads.forecast import ForecastHead
+from .heads.intensity_flow import IntensityFlowHead
 from .heads.ranking import RankingHead
+from ..sim.state import PAPER_EDGE_FEATURE_NAMES, PAPER_NODE_FEATURE_NAMES
 
 
 def build_model(cfg: Dict[str, Any]):
@@ -17,13 +19,31 @@ def build_model(cfg: Dict[str, Any]):
     """
     model_cfg = cfg["model"]
     head_cfg = cfg.get("head", {"type": "forecast"})
-    head_type = head_cfg.get("type", "forecast")
+    head_type = str(head_cfg.get("type", "forecast")).lower()
 
     if head_type == "forecast":
         head = ForecastHead(out_dim=int(head_cfg.get("out_dim", 1)),
-                            in_dim=int(model_cfg.get("emb_dim", 64)))
+                            in_dim=int(model_cfg.get("emb_dim", 64)),
+                            output_activation=str(head_cfg.get("output_activation", "none")))
     elif head_type == "ranking":
         head = RankingHead(in_dim=int(model_cfg.get("emb_dim", 64)))
+    elif head_type == "intensity_flow":
+        if int(model_cfg.get("node_in_dim", 0)) != len(PAPER_NODE_FEATURE_NAMES):
+            raise ValueError(
+                "paper intensity_flow head requires node_in_dim="
+                f"{len(PAPER_NODE_FEATURE_NAMES)}"
+            )
+        if int(model_cfg.get("edge_in_dim", 0)) != len(PAPER_EDGE_FEATURE_NAMES):
+            raise ValueError(
+                "paper intensity_flow head requires edge_in_dim="
+                f"{len(PAPER_EDGE_FEATURE_NAMES)}"
+            )
+        head = IntensityFlowHead(
+            in_dim=int(model_cfg.get("emb_dim", 64)),
+            edge_in_dim=int(model_cfg.get("edge_in_dim", 0)),
+            hidden_dim=int(head_cfg.get("hidden_dim", model_cfg.get("emb_dim", 64))),
+            dropout=float(head_cfg.get("dropout", model_cfg.get("dropout", 0.0))),
+        )
     else:
         raise ValueError(f"Unknown head.type={head_type}")
 

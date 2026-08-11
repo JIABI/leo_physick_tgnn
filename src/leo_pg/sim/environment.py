@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import math
 from typing import Any, Dict, Tuple
 
 import torch
@@ -8,6 +9,7 @@ import torch
 from .channel import compute_sinr, sinr_to_rate
 from .load import update_satellite_load
 from .interference import build_satellite_interference_edges
+from .protocol import validate_allocator_parameters
 from ..graph.builder import build_user_sat_edges
 from ..graph.edge_types import EdgeType
 from ..physics.descriptors import compute_edge_descriptors
@@ -52,6 +54,12 @@ class MultiUserLEOEnv:
         self.T = int(cfg.get("T", 200))
         self.dt = float(cfg.get("dt", 1.0))
         self.K = int(cfg.get("K_users", 50))
+        if self.T <= 0:
+            raise ValueError("T must be positive")
+        if not math.isfinite(self.dt) or self.dt <= 0.0:
+            raise ValueError("dt must be finite and positive")
+        if self.K <= 0:
+            raise ValueError("K_users must be positive")
 
         torch.manual_seed(int(cfg.get("seed", 7)))
 
@@ -59,6 +67,8 @@ class MultiUserLEOEnv:
         gcfg = cfg.get("graph", {})
         self.visibility_radius = float(gcfg.get("visibility_radius", 0.7))
         self.topk = int(gcfg.get("topk", 8))
+        if self.topk <= 0:
+            raise ValueError("graph.topk must be positive")
 
         self.include_sat_sat = bool(gcfg.get("include_sat_sat", False))
         self.sat_sat_radius = float(gcfg.get("sat_sat_radius", 0.25))
@@ -79,6 +89,19 @@ class MultiUserLEOEnv:
         lcfg = cfg.get("load", {})
         self.sat_capacity_users = int(lcfg.get("sat_capacity_users", 10))  # users per satellite capacity (debug)
         self.load_momentum = float(lcfg.get("momentum", 0.8))
+        if self.sat_capacity_users <= 0:
+            raise ValueError("load.sat_capacity_users must be positive")
+        (
+            self.base_sinr,
+            self.dist_scale,
+            self.sinr_min,
+            self.load_momentum,
+        ) = validate_allocator_parameters(
+            base_sinr=self.base_sinr,
+            dist_scale=self.dist_scale,
+            sinr_min=self.sinr_min,
+            load_momentum=self.load_momentum,
+        )
 
         # ---- Physics params ----
         self.cox_cfg = cfg.get("cox", {})
@@ -127,6 +150,8 @@ class MultiUserLEOEnv:
             from .ephemeris import SimpleKinematicEphemeris
 
             self.S = int(cfg.get("S_sats", 200))
+            if self.S <= 0:
+                raise ValueError("S_sats must be positive")
             self.N = self.K + self.S
 
             user_pos0 = torch.randn(self.K, 3, device=device) * 0.2
@@ -145,15 +170,16 @@ class MultiUserLEOEnv:
 
     def reset(self) -> Dict[str, Any]:
         self.t = 0
+        self.ephem.reset()
         self.sat_load.zero_()
         self.prev_serving_sat.fill_(-1)
-        return self._make_step()
+        return self._make_step(advance_seconds=0.0)
 
     def step(self) -> Dict[str, Any]:
-        if self.t >= self.T:
+        if self.t >= self.T - 1:
             raise RuntimeError("Episode finished")
         self.t += 1
-        return self._make_step()
+        return self._make_step(advance_seconds=self.dt)
 
     def _greedy_assign(
         self,
@@ -161,7 +187,7 @@ class MultiUserLEOEnv:
         dst_s: torch.Tensor,        # [E] local sat idx (0..S-1)
         rate: torch.Tensor,         # [E]
         sinr: torch.Tensor,         # [E]
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Greedy allocator that produces serving satellites and per-step system signals."""
         device = rate.device
         K = self.K
@@ -213,10 +239,11 @@ class MultiUserLEOEnv:
             if prev >= 0 and prev != picked:
                 handover[u] = True
 
-        return serving, handover, ho_fail, incoming_users
+        return serving, handover, ho_fail, incoming_users, user_order
 
-    def _make_step(self) -> Dict[str, Any]:
-        state = self.ephem.step(self.dt)
+    def _make_step(self, advance_seconds: float) -> Dict[str, Any]:
+        state = self.ephem.step(advance_seconds)
+        sat_load_pre = self.sat_load.clone()
 
         # Scale to normalized units (important for thresholds)
         pos = state.pos * self.pos_scale
@@ -224,8 +251,6 @@ class MultiUserLEOEnv:
 
         user_pos = pos[: self.K]
         sat_pos = pos[self.K :]
-        user_vel = vel[: self.K]
-        sat_vel = vel[self.K :]
 
         # Node features: [pos, vel]
         node_x = torch.cat([pos, vel], dim=-1)
@@ -250,6 +275,7 @@ class MultiUserLEOEnv:
             handover = torch.zeros((self.K,), device=self.device, dtype=torch.bool)
             ho_fail = torch.ones((self.K,), device=self.device, dtype=torch.bool)
             incoming_users = torch.zeros((self.S,), device=self.device, dtype=torch.float32)
+            allocation_user_order = torch.arange(self.K, device=self.device)
             rate = torch.zeros((0,), device=self.device)
             sinr = torch.zeros((0,), device=self.device)
 
@@ -290,7 +316,7 @@ class MultiUserLEOEnv:
             )
 
             # Greedy multi-user assignment to define ground-truth load dynamics + HO system signals
-            serving, handover, ho_fail, incoming_users = self._greedy_assign(
+            serving, handover, ho_fail, incoming_users, allocation_user_order = self._greedy_assign(
                 src_u=src_u,
                 dst_s=dst_s,
                 rate=rate,
@@ -346,6 +372,15 @@ class MultiUserLEOEnv:
             "K_users": int(self.K),
             "S_sats": int(self.S),
             "sat_capacity_users": int(self.sat_capacity_users),
+            "sat_load_pre": sat_load_pre,       # [S] load used by this step's allocator
+            "allocation_user_order": allocation_user_order,  # [K] allocator tie/order state
+            "allocator_protocol": {
+                "name": "rate_greedy_v1",
+                "base_sinr": float(self.base_sinr),
+                "dist_scale": float(self.dist_scale),
+                "sinr_min": float(self.sinr_min),
+                "load_momentum": float(self.load_momentum),
+            },
             "serving_sat": serving,          # [K] local sat id, -1 if failure
             "handover": handover,            # [K] bool
             "ho_fail": ho_fail,              # [K] bool

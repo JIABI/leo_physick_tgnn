@@ -4,6 +4,8 @@ from typing import Dict, Any, Optional, Sequence, List
 
 import torch
 
+from .losses import satellite_target_mse
+
 
 def rollout_teacher_forcing(
     model,
@@ -14,12 +16,12 @@ def rollout_teacher_forcing(
     return_preds_cpu: bool = False,
 ) -> Dict[str, Any]:
     """
-    Teacher-forcing rollout evaluation (streaming, memory-safe).
+    Teacher-forced sequence evaluation (streaming, memory-safe).
 
     Key change vs old version:
       - DO NOT call model.forward_episode() (which stores all-step preds on GPU).
       - Instead, iterate steps and call model.forward_step(step, mem, device).
-      - Optionally collect preds on CPU only (return_preds_cpu=True) for system metrics.
+      - Optionally collect predictions on CPU for frozen-trajectory diagnostics.
 
     Returns dict:
       - mse_mean, mse_last, mse_series, effective_H
@@ -73,7 +75,7 @@ def rollout_teacher_forcing(
             pred, y, mem = model.forward_step(step, mem, device=device)
 
             # compute MSE in fp32 on CPU to avoid AMP dtype issues
-            mse_t = torch.mean((pred.float() - y.float()) ** 2).detach().cpu().item()
+            mse_t = satellite_target_mse(pred.float(), y.float(), step).detach().cpu().item()
             mses.append(float(mse_t))
 
             if return_preds_cpu:
@@ -109,11 +111,11 @@ def rollout_episode(
     return_preds_cpu: bool = False,
 ) -> Dict[str, Any]:
     """
-    Wrapper for rollout evaluation (teacher forcing in this repo).
+    Wrapper for teacher-forced sequence evaluation.
 
     return_preds_cpu=True makes it export-friendly:
       - preds are stored only on CPU
-      - export script can compute pingpong/HO fail/load stats without GPU OOM
+      - export code can compute adjacent A-B-A, assignment-failure, and load diagnostics
     """
     return rollout_teacher_forcing(
         model=model,

@@ -1,0 +1,46 @@
+seed: 7
+
+data:
+  path: data/synthetic_debug.pt
+  split: train
+  num_workers: 0
+  batch_size: 1
+
+model:
+  node_in_dim: 6
+  edge_in_dim: 6
+  edge_type_vocab: 8
+  use_edge_type: true
+  mem_dim: 16
+  msg_dim: 16
+  emb_dim: 16
+  message_type: physick
+  aggregator: sum
+  dropout: 0.0
+  physick:
+    num_kernels: 16
+    projection_radius: 1.0
+    coeff_impl: mlp
+    mix_impl: dot
+    coeff_hidden: 32
+    coeff_chunk: 128
+
+head:
+  type: forecast
+  out_dim: 1
+  output_activation: sigmoid
+
+train:
+  task: one_step
+  epochs: 1
+  lr: 0.001
+  weight_decay: 0.00001
+  clip_grad_norm: 1.0
+  device: cpu
+  log_every: 1
+  edge_chunk: 512
+  save_dir: runs
+  run_name: smoke_$message_type$
+
+eval:
+  rollout_horizon: 10

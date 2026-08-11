@@ -1,86 +1,97 @@
-"""Plot rollout curves for mlp/kan/physick across horizons.
+"""Plot teacher-forced prediction error across horizons and held-out episodes."""
 
-This script expects checkpoints saved by scripts/train.py (best.pt/last.pt).
-It is robust to older checkpoint schemas via leo_pg.train.checkpoint.load_ckpt.
-"""
 from __future__ import annotations
-import argparse
-import os
-import yaml
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
 
+import argparse
+import copy
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+
+from leo_pg.data.dataset import TemporalEpisodeDataset
 from leo_pg.models.registry import build_model
-from leo_pg.sim.environment import MultiUserLEOEnv
 from leo_pg.train.checkpoint import load_ckpt
 from leo_pg.train.rollout import rollout_episode
+from leo_pg.utils.config import load_cfg
+from leo_pg.utils.device import get_device
+from leo_pg.utils.run_name import resolve_run_name
 
-def _deep_update(d, u):
-    for k,v in u.items():
-        if isinstance(v, dict) and isinstance(d.get(k), dict):
-            _deep_update(d[k], v)
-        else:
-            d[k]=v
-    return d
 
-def _resolve_run_name(cfg, message_type: str):
-    rn = str(cfg["train"].get("run_name","run_{message_type}"))
-    rn = rn.replace("$message_type$", message_type).replace("{message_type}", message_type)
-    if ("$message_type$" not in str(cfg["train"].get("run_name","")) and "{message_type}" not in str(cfg["train"].get("run_name",""))):
-        # avoid accidental overwrite across methods
-        if not rn.endswith(f"_{message_type}"):
-            rn = f"{rn}_{message_type}"
-    return rn
+def _positive_horizons(value: str) -> list[int]:
+    horizons = list(dict.fromkeys(int(item) for item in value.split(",") if item.strip()))
+    if not horizons or any(horizon <= 0 for horizon in horizons):
+        raise argparse.ArgumentTypeError("--Hs must contain one or more positive integers")
+    return horizons
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--cfg", required=True)
-    ap.add_argument("--Hs", required=True, help="comma-separated horizons, e.g. 20,50,100,600")
-    ap.add_argument("--split", default="train", choices=["train","val","test"])
-    ap.add_argument("--which", default="best", choices=["best","last"])
-    ap.add_argument("--metric", default="mse_mean", choices=["mse_mean","mse_last"])
-    ap.add_argument("--out", default="rollout_curves.png")
-    args = ap.parse_args()
 
-    with open(args.cfg, "r") as f:
-        cfg = yaml.safe_load(f)
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cfg", required=True)
+    parser.add_argument("--Hs", required=True, type=_positive_horizons)
+    parser.add_argument("--split", default="test", choices=["train", "val", "test"])
+    parser.add_argument("--which", default="last", choices=["best", "last"])
+    parser.add_argument("--metric", default="mse_mean", choices=["mse_mean", "mse_last"])
+    parser.add_argument("--methods", default="mlp,kan,physick")
+    parser.add_argument("--max_eps", type=int, default=0, help="0 uses the full split")
+    parser.add_argument("--device", default=None, choices=["cpu", "cuda"])
+    parser.add_argument("--out", default="teacher_forced_horizon_curves.png")
+    parser.add_argument("--allow-config-mismatch", action="store_true")
+    parser.add_argument("--allow-legacy-checkpoint", action="store_true")
+    args = parser.parse_args()
+    if args.max_eps < 0:
+        parser.error("--max_eps must be non-negative")
 
-    device = cfg["train"].get("device","cpu")
-    Hs = [int(x) for x in args.Hs.split(",") if x.strip()]
+    cfg = load_cfg(args.cfg)
+    device = get_device(
+        args.device or cfg.get("train", {}).get("device", "cuda"),
+        strict=args.device is not None,
+    )
+    dataset = TemporalEpisodeDataset(str(cfg["data"]["path"]), split=args.split)
+    episode_count = len(dataset) if args.max_eps == 0 else min(args.max_eps, len(dataset))
+    methods = [method.strip() for method in args.methods.split(",") if method.strip()]
+    curves = {method: [] for method in methods}
 
-    methods = ["mlp","kan","physick"]
-    ys = {m: [] for m in methods}
+    for method in methods:
+        method_cfg = copy.deepcopy(cfg)
+        method_cfg.setdefault("model", {})["message_type"] = method
+        run_name = resolve_run_name(method_cfg, message_type=method)
+        run_dir = Path(method_cfg.get("train", {}).get("save_dir", "runs")) / run_name
+        ckpt_path = run_dir / f"{args.which}.pt"
+        model = build_model(method_cfg).to(device)
+        load_ckpt(
+            str(ckpt_path),
+            model,
+            opt=None,
+            map_location=device,
+            strict=True,
+            allow_config_mismatch=args.allow_config_mismatch,
+            allow_legacy_checkpoint=args.allow_legacy_checkpoint,
+        )
+        model.eval()
 
-    # Build a single env/dataset episode (the .pt may hold 1 episode; we use env to interpret)
-    # For plotting, we load the episode from the pt directly to keep it simple.
-    pt_path = cfg["data"]["path"]
-    obj = torch.load(pt_path, map_location="cpu")
-    episode = obj["episodes"][0]
+        for horizon in args.Hs:
+            values = [
+                float(
+                    rollout_episode(
+                        model,
+                        dataset[index],
+                        device=device,
+                        H=horizon,
+                    )[args.metric]
+                )
+                for index in range(episode_count)
+            ]
+            curves[method].append(sum(values) / len(values))
 
-    for m in methods:
-        cfg_m = dict(cfg)
-        cfg_m = _deep_update(cfg_m, {"model": {"message_type": m}})
-        run_name = _resolve_run_name(cfg_m, m)
-        ckpt_path = os.path.join(cfg_m["train"].get("save_dir","runs"), run_name, f"{args.which}.pt")
-
-        model = build_model(cfg_m).to(device)
-        load_ckpt(ckpt_path, model, opt=None, map_location=device, strict=True)
-
-        for H in Hs:
-            out = rollout_episode(model, episode, device=device, H=H)
-            ys[m].append(float(out[args.metric]))
-
-    # plot
-    plt.figure()
-    for m in methods:
-        plt.plot(Hs, ys[m], marker="o", label=m)
-    plt.xlabel("Horizon H (steps)")
-    plt.ylabel(args.metric)
+    for method in methods:
+        plt.plot(args.Hs, curves[method], marker="o", label=method)
+    plt.xlabel("Teacher-forced horizon (steps)")
+    plt.ylabel(f"Mean {args.metric} across {args.split} episodes")
     plt.legend()
     plt.tight_layout()
     plt.savefig(args.out, dpi=200)
-    print("Saved:", args.out)
+    print(f"[WRITE] {args.out}")
+
 
 if __name__ == "__main__":
     main()

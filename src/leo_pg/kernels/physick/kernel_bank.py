@@ -12,10 +12,9 @@ def _atanh(x: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
 
 class KernelBank(nn.Module):
     """
-    Paper-aligned kernel bank for Cox-driven handover management.
+    Legacy Cox-style analytical kernel bank for handover experiments.
 
-    This module is intentionally *formula-shaped*: each κ_m corresponds to a closed-form term
-    appearing in the Cox-process derivation / utility design:
+    This module preserves the formula-shaped terms used by the early prototype:
 
       - Feasibility-thinned arrival intensity Λ^{feas} (Eq. 26)
       - Handover success probability P^{HO} = 1 - exp(-Λ^{feas} T0) (Eq. 28)
@@ -33,7 +32,9 @@ class KernelBank(nn.Module):
         z = [P_risk, ET0, Lambda_feas, rate, H_norm, load]  (all ~ in [-1,1])
 
     We invert those normalizations (approximately exactly) to recover raw positive quantities
-    before applying the analytical shapes, so the kernels remain faithful to the paper.
+    before applying the analytical shapes. The names and equation numbers below
+    document that legacy prototype; they do not claim alignment with the current
+    manuscript's Intensity-Flow interface.
 
     Output:
         κ(z) ∈ R^{E×M} with M=num_kernels (trim/pad deterministically).
@@ -42,7 +43,7 @@ class KernelBank(nn.Module):
     def __init__(
         self,
         edge_dim: int,
-        num_kernels: int = 12,
+        num_kernels: int = 16,
         # risk-adaptive trigger parameters (Eq. 34):
         rho1: float = 0.3,
         rho2: float = 0.7,
@@ -108,7 +109,7 @@ class KernelBank(nn.Module):
         """
         return 2.0 * _atanh(z_load)
 
-    # --------- Paper-shaped primitives ---------
+    # --------- Legacy prototype primitives ---------
     def _soft_piecewise_gamma(self, p_risk: torch.Tensor) -> torch.Tensor:
         """
         Smooth version of Eq. (34):
@@ -144,7 +145,7 @@ class KernelBank(nn.Module):
         H_n = z[..., 4] if z.size(-1) > 4 else torch.zeros_like(pr_n)
         load_n = z[..., 5] if z.size(-1) > 5 else torch.zeros_like(pr_n)
 
-        # invert normalization to recover paper-space quantities
+        # Invert the legacy prototype's descriptor normalization.
         P_risk = self._inv_prisk(pr_n).clamp(self.eps, 1.0)         # (0,1]
         ET0 = self._inv_log1p_tanh(et0_n)                            # >=0 (seconds)
         Lam = self._inv_log1p_tanh(lam_n)                            # >=0 (1/s)
@@ -152,7 +153,7 @@ class KernelBank(nn.Module):
         H = self._inv_H(H_n)                                         # can be negative if H_n<0; that's okay
         load = self._inv_load(load_n)                                # load proxy (typically >=0)
 
-        # Derived terms from paper
+        # Derived terms from the legacy analytical prototype.
         # Eq. (28): P_HO = 1 - exp(-Lam*T0).  In moment matching, T0~ET0.
         Nbar = Lam * ET0                                              # expected feasible arrivals during ET0
         P_HO = 1.0 - torch.exp(-Nbar.clamp_min(0.0))
@@ -170,13 +171,13 @@ class KernelBank(nn.Module):
         # Eq. (34): risk-adaptive trigger level Γ(P_risk) (soft version)
         Gamma = self._soft_piecewise_gamma(P_risk)
 
-        # Utility components (paper's beam selection uses a utility over {C, H, load}; we keep them separable)
+        # Legacy utility components over {C, H, load}; keep them separable.
         # Provide monotone transforms to help learning without destroying interpretability.
         load_gate = torch.sigmoid(-load)          # high load -> small
         cost_gate = torch.sigmoid(-H)             # high cost -> small
         cap_sat = C / (1.0 + C)                   # in (0,1)
 
-        # --- Kernel list (each κ is a paper-aligned primitive) ---
+        # --- Kernel list (legacy analytical primitives) ---
         k = []
         k.append(torch.ones_like(P_risk))         # κ1: bias / constant
 
@@ -199,8 +200,8 @@ class KernelBank(nn.Module):
         # Decision shaping: trigger & penalties
         k.append(Gamma)                           # κ12: Γ(P_risk) (Eq. 34) soft gate
 
-        # If you requested more kernels, keep adding paper-consistent penalties/couplings.
-        # These are still interpretable and correspond to the utility terms (Eq. 39-40).
+        # Additional kernels retain the legacy prototype's cost/load semantics.
+        # Additional interpretable legacy cost/load couplings.
         if self.num_kernels > 12:
             k.append(H)                           # κ13: signaling overhead (Eq. 39)
         if self.num_kernels > 13:

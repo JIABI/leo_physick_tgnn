@@ -6,13 +6,11 @@ import os
 
 from pathlib import Path
 
-from typing import Any, Dict, Optional
-
-import torch
+from typing import Any, Dict
 
 from torch.utils.data import DataLoader
 
-from _cfg import load_cfg
+from leo_pg.utils.config import load_cfg
 
 from leo_pg.utils.seed import set_seed
 
@@ -27,36 +25,7 @@ from leo_pg.models import build_model
 from leo_pg.train import Trainer
 
 from leo_pg.train.checkpoint import save_ckpt
-
-
-def _resolve_run_name(cfg: Dict[str, Any], message_type: str, mode: str) -> str:
-    tr = cfg.setdefault("train", {})
-
-    rn = str(tr.get("run_name", "tgn_run"))
-
-    # Replace placeholders
-
-    rn = rn.replace("$message_type$", message_type).replace("{message_type}", message_type)
-
-    rn = rn.replace("$mode$", mode).replace("{mode}", mode)
-
-    # If no placeholder was used, append message_type to avoid collisions
-
-    raw = str(tr.get("run_name", ""))
-
-    if ("$message_type$" not in raw) and ("{message_type}" not in raw) and (not rn.endswith(f"_{message_type}")):
-        rn = f"{rn}_{message_type}"
-
-    if ("$mode$" not in raw) and ("{mode}" not in raw) and (f"_{mode}_" not in rn) and (not rn.endswith(f"_{mode}")):
-
-        # only append mode if it's non-empty and not already present
-
-        if mode:
-            rn = f"{rn}_{mode}"
-
-    tr["run_name"] = rn
-
-    return rn
+from leo_pg.utils.run_name import resolve_run_name
 
 
 def main():
@@ -69,6 +38,8 @@ def main():
     ap.add_argument("--data", type=str, default=None, help="Override data path (pt)")
 
     ap.add_argument("--mode", type=str, default=None, help="Override mode label for run_name (single|multi), optional")
+
+    ap.add_argument("--device", type=str, default=None, choices=["cpu", "cuda"])
 
     args = ap.parse_args()
 
@@ -104,7 +75,10 @@ def main():
 
     set_seed(int(cfg.get("seed", 7)))
 
-    device = get_device(str(cfg.get("train", {}).get("device", "cuda")))
+    device = get_device(
+        args.device or str(cfg.get("train", {}).get("device", "cuda")),
+        strict=args.device is not None,
+    )
 
     # DataLoader
 
@@ -136,7 +110,7 @@ def main():
 
     msg = str(cfg.get("model", {}).get("message_type", "mlp"))
 
-    run_name = _resolve_run_name(cfg, msg, mode)
+    run_name = resolve_run_name(cfg, message_type=msg, mode=mode)
 
     run_dir = save_dir / run_name
 
@@ -175,6 +149,9 @@ def main():
 
     epochs = int(cfg.get("train", {}).get("epochs", 10))
 
+    if epochs <= 0:
+        raise ValueError("train.epochs must be positive")
+
     if task == "one_step":
 
         tr.train_one_step(dl, epochs=epochs)
@@ -193,12 +170,17 @@ def main():
 
     # Save last checkpoint (always)
 
-    save_ckpt(str(run_dir / "last.pt"), model=model, opt=tr.opt, epoch=epochs)
+    save_ckpt(
+        str(run_dir / "last.pt"),
+        model=model,
+        opt=tr.opt,
+        epoch=epochs,
+        run_name=run_name,
+        config=cfg,
+    )
 
     print(f"[CKPT] saved: {run_dir / 'last.pt'}")
 
 
 if __name__ == "__main__":
     main()
-
-

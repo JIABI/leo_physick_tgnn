@@ -1,6 +1,9 @@
 from __future__ import annotations
-import argparse, math
+import argparse
+import math
+import random
 from datetime import datetime, timezone
+from pathlib import Path
 
 MU = 398600.4418  # km^3/s^2
 R_E = 6378.137  # km
@@ -58,21 +61,47 @@ def make_tle_lines(
     return line1, line2
 
 
-def generate(out_path: str, N: int, alt_km: float, inc_deg: float, planes: int, ecc: float, seed: int):
+def parse_epoch(value: str) -> datetime:
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    epoch = datetime.fromisoformat(normalized)
+    if epoch.tzinfo is None:
+        epoch = epoch.replace(tzinfo=timezone.utc)
+    return epoch.astimezone(timezone.utc)
+
+
+def generate(
+    out_path: str,
+    N: int,
+    alt_km: float,
+    inc_deg: float,
+    planes: int,
+    ecc: float,
+    seed: int,
+    epoch: datetime,
+):
+    if N <= 0:
+        raise ValueError("N must be positive")
+    if N > 9999:
+        raise ValueError("N must be <= 9999 for the configured synthetic satellite-number range")
+    if planes <= 0:
+        raise ValueError("planes must be positive")
+
     # 让每个 plane 的卫星数尽量均匀
     sats_per_plane = math.ceil(N / planes)
-    epoch = datetime.now(timezone.utc)
     mm = mean_motion_rev_per_day(alt_km)
+    rng = random.Random(int(seed))
 
     k = 0
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         for p in range(planes):
             raan = (360.0 * p / planes) % 360.0
+            phase_offset = rng.uniform(0.0, 360.0)
             for q in range(sats_per_plane):
                 if k >= N:
                     break
                 satnum = 90000 + k + 1
-                M = (360.0 * q / sats_per_plane) % 360.0
+                M = (phase_offset + 360.0 * q / sats_per_plane) % 360.0
                 name = f"SYN-{satnum:05d}"
                 l1, l2 = make_tle_lines(
                     satnum=satnum,
@@ -100,8 +129,18 @@ def main():
     ap.add_argument("--planes", type=int, default=72)
     ap.add_argument("--ecc", type=float, default=0.0001)
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--epoch_utc", type=str, default="2025-01-01T00:00:00Z")
     args = ap.parse_args()
-    generate(args.out, args.N, args.alt_km, args.inc_deg, args.planes, args.ecc, args.seed)
+    generate(
+        args.out,
+        args.N,
+        args.alt_km,
+        args.inc_deg,
+        args.planes,
+        args.ecc,
+        args.seed,
+        parse_epoch(args.epoch_utc),
+    )
     print(f"[OK] wrote {args.N} sats to {args.out}")
 
 

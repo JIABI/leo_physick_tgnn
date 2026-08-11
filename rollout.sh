@@ -1,26 +1,38 @@
-# generate rollout .json files
-python scripts/export_rollout_metrics.py \
-  --cfg configs/default.yaml \
-  --Hs 20,50,100,200 \
-  --split train \
-  --which last \
-  --methods kan \
-  --device cuda
+#!/usr/bin/env bash
+set -euo pipefail
 
-#python scripts/plot_system_metrics.py \
-#  --mlp runs/tgn_1000_mlp_multi/rollout_metrics.json \
-#  --kan runs/tgn_1000_kan_multi/rollout_metrics.json \
-#  --physick runs/tgn_500_physick_multi/rollout_metrics.json \
-#  --out_dir runs/plots_500_multi \
-#  --combined --dt 1.0 --target_label "Beam-load prediction"
+PYTHON="${PYTHON:-python3}"
+CFG="${CFG:-configs/smoke.yaml}"
+MESSAGE="${MESSAGE:-physick}"
+DATA_PATH="${DATA_PATH:-data/synthetic_debug.pt}"
+SPLIT="${SPLIT:-test}"
+HS="${HS:-5,10}"
+MAX_EPS="${MAX_EPS:-2}"
+WHICH="${WHICH:-last}"
+MODE="${MODE:-}"
+DEVICE="${DEVICE:-cpu}"
+CKPT="${CKPT:-}"
+OUT="${OUT:-}"
 
+args=(
+  scripts/rollout.py
+  --cfg "$CFG"
+  --message "$MESSAGE"
+  --data "$DATA_PATH"
+  --split "$SPLIT"
+  --which "$WHICH"
+  --Hs "$HS"
+  --max_eps "$MAX_EPS"
+  --device "$DEVICE"
+)
+if [[ -n "$MODE" ]]; then
+  args+=(--mode "$MODE")
+fi
+if [[ -n "$CKPT" ]]; then
+  args+=(--ckpt "$CKPT")
+fi
+if [[ -n "$OUT" ]]; then
+  args+=(--out "$OUT")
+fi
 
-
-
-# plot all evaluation metrics
-python scripts/plot_system_metrics.py \
-  --mlp runs/tgn_500_mlp_multi/rollout_metrics.json \
-  --kan runs/tgn_500_kan_multi/rollout_metrics.json \
-  --physick runs/tgn_500_physick_multi/rollout_metrics.json \
-  --out_dir runs/plots/tgn_500_multi
-
+"$PYTHON" "${args[@]}"
