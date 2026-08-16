@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Controller-facing-state run-by-episode result record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "platform",
+    "condition_id",
+    "cell_id",
+    "method",
+    "interface",
+    "operator",
+    "run_id",
+    "checkpoint_id",
+    "episode_id",
+    "exogenous_sequence_id",
+    "metric",
+    "defined",
+    "provenance",
+    "unit",
+    "stress_id",
+    "split"
+  ],
+  "properties": {
+    "platform": {"type": "string", "minLength": 1},
+    "condition_id": {"type": "string", "minLength": 1},
+    "cell_id": {"type": "string", "minLength": 1, "description": "Globally unique analysis cell."},
+    "method": {"type": "string", "minLength": 1},
+    "interface": {"type": "string"},
+    "operator": {"type": "string"},
+    "run_id": {"type": "string", "minLength": 1},
+    "checkpoint_id": {"type": "string", "minLength": 1},
+    "episode_id": {"type": "string", "minLength": 1},
+    "exogenous_sequence_id": {"type": "string", "minLength": 1},
+    "metric": {"type": "string", "minLength": 1},
+    "value": {"type": ["number", "null"]},
+    "defined": {"type": "boolean"},
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "original_experiment_output",
+        "derived_from_original_experiment_output"
+      ]
+    },
+    "numerator": {"type": ["number", "null"]},
+    "denominator": {"type": ["number", "null"]},
+    "support_n": {"type": ["integer", "null"], "minimum": 0},
+    "unit": {"type": "string", "minLength": 1},
+    "stress_id": {"type": "string", "minLength": 1},
+    "split": {"type": "string", "minLength": 1},
+    "missing_reason": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"defined": {"const": true}}},
+      "then": {"required": ["value"], "properties": {"value": {"type": "number"}}}
+    },
+    {
+      "if": {"properties": {"defined": {"const": false}}},
+      "then": {
+        "required": ["value", "missing_reason"],
+        "properties": {"value": {"type": "null"}, "missing_reason": {"type": "string", "minLength": 1}}
+      }
+    }
+  ]
+}

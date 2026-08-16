@@ -1,0 +1,153 @@
+# Shared UAV protocol and model configuration.
+
+seed: 17
+
+uav_shared:
+  protocol_version: 1
+  episode_seed: 17
+  density_multiplier: 1
+  capacity_compression: 1.0
+  exact:
+    control_dt_s: 1.0
+    evaluation_horizon_steps: 120
+    nominal_uav_count: 24
+    station_count: 6
+    density_multipliers: [1, 2, 3, 4, 5]
+    capacity_compressions: [1.0, 0.75, 0.5]
+    candidate_topk: 3
+    active_slots_per_station: 2
+    fifo_queue_capacity: 8
+    feasible_start_reserve_fraction: 0.15
+    intensity_lookahead_s: 12.0
+    eta_clip: [0.0, 1.0]
+    station_flow_clip: [0.0, 1.0]
+    intensity_clip: [0.0, 3.0]
+  dynamics:
+    region_width_m: 1000.0
+    region_height_m: 1000.0
+    station_boundary_margin_fraction: 0.10
+    max_speed_m_s: 25.0
+    max_turn_rate_rad_s: 0.7853981633974483
+    heading_jitter_rad: 0.03490658503988659
+    docking_radius_m: 12.0
+    maximum_reachable_distance_m: 800.0
+    nominal_battery_units: 100.0
+    initial_energy_fraction_min: 0.65
+    initial_energy_fraction_max: 1.0
+    travel_energy_units_per_m: 0.02
+    idle_energy_units_per_s: 0.03
+    service_energy_units_per_s: 1.5
+    nominal_service_duration_s: 8.0
+    service_duration_jitter_s: 2.0
+    flow_memory: 0.85
+    flow_queue_weight: 0.45
+    flow_occupancy_weight: 0.35
+    flow_inbound_weight: 0.20
+    eta_travel_weight: 0.50
+    eta_arrival_energy_weight: 0.50
+    intensity_start_eta_weight: 0.45
+    intensity_energy_margin_weight: 0.30
+    intensity_station_flow_weight: 0.25
+  provenance:
+    exact:
+      status: manuscript_exact
+      source: main_v8.tex and si_v8.tex UAV protocol sections
+    dynamics:
+      status: configured
+      source: shared UAV protocol configuration
+
+uav_pipeline:
+  schema_version: 1
+  dataset:
+    storage_layout: episode_shards
+    output: artifacts/uav/uav_dataset.pt
+    train_horizon_steps: 60
+    evaluation_horizon_steps: 120
+    train_episodes_per_run: 240
+    validation_episodes_per_run: 40
+    test_episodes_per_run: 80
+    run_seeds: [17, 29, 43, 61, 79]
+    split_seed: 1709
+    provenance:
+      horizons_counts_runs: manuscript_exact
+      run_seed_values: configured
+  graph:
+    contract_version: 1
+    uav_feature_dim: 9
+    station_feature_dim: 6
+    edge_feature_dim: 6
+    stable_edge_id: uav_id_times_station_count_plus_station_id
+  policy:
+    eta_weight: 1.0
+    intensity_weight: 0.6
+    flow_weight: 0.4
+    hard_feasible_start_mask: false
+    hysteresis: 0.3333333333333333
+    provenance: configured
+  initializer:
+    kind: configured_prior
+    eta: 0.5
+    intensity: 1.5
+    station_flow: 0.0
+    provenance: configured
+  model:
+    architecture: bipartite_uav_station_world_model_v1
+    uav_in_dim: 9
+    station_in_dim: 6
+    edge_in_dim: 6
+    hidden_dim: 128
+    message_dim: 128
+    message_passing_layers: 2
+    dropout: 0.1
+    head_hidden_dim: 128
+    head_dropout: 0.1
+    intensity_max: 3.0
+    operator: physick
+    kan_knots: 16
+    physick_latent_dim: 128
+    physick_descriptor_dim: 16
+    physick_kernel_count: 16
+    physick_kernel_hidden_dim: 128
+    physick_coefficient_hidden_dim: 128
+    physick_projection_radius: 1.0
+    physick_operating_clip: 5.0
+    physick_gain_control: true
+  training:
+    objective: one_step_teacher_forcing
+    epochs: 50
+    batch_size_control_graphs: 32
+    tbptt_steps: 1
+    learning_rate: 0.0005
+    weight_decay: 0.0001
+    gradient_clip_norm: 1.0
+    device: cpu
+    loss_weights:
+      eta: 1.0
+      log1p_intensity: 1.0
+      station_flow: 1.0
+      feasibility: 0.2
+    scheduled_sampling:
+      enabled: false
+      start_probability: 0.0
+      maximum_probability: 1.0
+      start_epoch: 1
+      end_epoch: 50
+    action_coupled_multistep:
+      enabled: false
+      rollout_horizon: 10
+      model_feedback_probability: 1.0
+  evaluation:
+    output: artifacts/uav/evaluation
+    include_one_step_loss: true
+    modes: [model, oracle, eta, intensity, flow, intensity_flow]
+    horizon_steps: 120
+    episodes_per_run: 30
+    bootstrap_resamples: 10000
+    bootstrap_seed: 17117
+    bootstrap_confidence: 0.95
+  metrics:
+    pingpong_window_seconds: 2.0
+    near_tie_margin: 0.3333333333333333
+    tail_probability: 0.10
+    service_failure_denominator: assignment_attempts_plus_failed_service_starts
+    station_load_source: queue_plus_active_slots

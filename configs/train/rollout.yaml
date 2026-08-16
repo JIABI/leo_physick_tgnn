@@ -1,3 +1,0 @@
-base: ../default.yaml
-train:
-  task: "rollout_teacher_forcing"

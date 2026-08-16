@@ -1,0 +1,7 @@
+extends: model_physick.yaml
+uav_pipeline:
+  model:
+    physick_gain_control: false
+  evaluation:
+    output: artifacts/uav/evaluation/physick_no_gain_control
+

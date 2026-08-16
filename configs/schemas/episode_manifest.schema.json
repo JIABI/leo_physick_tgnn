@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Matched held-out episode manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "platform",
+    "run_id",
+    "split",
+    "episode_id",
+    "episode_seed",
+    "exogenous_sequence_id",
+    "exogenous_seed",
+    "panel_id"
+  ],
+  "properties": {
+    "platform": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "split": {"type": "string", "minLength": 1},
+    "episode_id": {"type": "string", "minLength": 1},
+    "episode_seed": {"type": "integer", "minimum": 0},
+    "exogenous_sequence_id": {"type": "string", "minLength": 1},
+    "exogenous_seed": {"type": "integer", "minimum": 0},
+    "panel_id": {"type": "string", "minLength": 1},
+    "initial_state_id": {"type": "string"},
+    "notes": {"type": "string"}
+  }
+}

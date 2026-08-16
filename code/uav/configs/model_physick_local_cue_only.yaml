@@ -1,0 +1,13 @@
+extends: model_physick.yaml
+uav_pipeline:
+  policy:
+    intensity_weight: 0.0
+    flow_weight: 0.0
+  training:
+    loss_weights:
+      log1p_intensity: 0.0
+      station_flow: 0.0
+  evaluation:
+    include_one_step_loss: false
+    output: artifacts/uav/evaluation/physick_local_cue_only
+

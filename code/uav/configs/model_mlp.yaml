@@ -1,0 +1,7 @@
+extends: common.yaml
+uav_pipeline:
+  model:
+    operator: mlp
+    physick_gain_control: true
+  evaluation:
+    output: artifacts/uav/evaluation/mlp

@@ -1,0 +1,8 @@
+extends: common.yaml
+uav_pipeline:
+  model:
+    operator: kan
+    kan_knots: 16
+    physick_gain_control: true
+  evaluation:
+    output: artifacts/uav/evaluation/kan

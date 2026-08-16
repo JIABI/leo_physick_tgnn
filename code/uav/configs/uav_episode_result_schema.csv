@@ -1,0 +1,19 @@
+field,type,nullable,description
+platform,string,false,constant uav_shared_service
+experiment_task_id,string,false,task id from paper_task_matrix
+operator,string,false,mlp kan or physick
+ablation,string,false,nested intervention name
+run_id,string,false,independent training run id
+training_run_seed,integer,false,checkpoint training seed
+episode_id,string,false,held-out episode identity
+local_episode_index,integer,false,index inside the run split
+episode_seed,integer,false,paired simulator and exogenous sequence id
+paired_episode_id,string,false,stable identity shared by all methods within a run
+exogenous_sequence_id,integer,false,identifier of the keyed exogenous simulator sequence
+checkpoint_sha256,string,false,checkpoint content identity
+protocol_fingerprint,string,false,fully resolved platform protocol
+perturbation_fingerprint,string,false,structural evaluation condition
+substitution_mode,string,false,model oracle eta intensity flow or intensity_flow
+metric,string,false,metric contract key
+value,number,true,null only when the metric denominator is undefined
+support_count,integer,false,metric-specific support

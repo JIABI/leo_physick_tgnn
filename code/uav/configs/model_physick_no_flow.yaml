@@ -1,0 +1,11 @@
+extends: model_physick.yaml
+uav_pipeline:
+  policy:
+    flow_weight: 0.0
+  training:
+    loss_weights:
+      station_flow: 0.0
+  evaluation:
+    include_one_step_loss: false
+    output: artifacts/uav/evaluation/physick_no_flow
+

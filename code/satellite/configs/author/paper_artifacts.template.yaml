@@ -1,0 +1,116 @@
+schema_version: 1
+
+# Supply the five integer seed bundles used for the independent trained runs.
+# Replace each null entry before executing a study plan.
+runs:
+  - run_id: run01
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run02
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run03
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run04
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run05
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+
+# Exactly 30 held-out episode seeds/IDs per run. Conditions within a run reuse
+# this panel and the corresponding exogenous sequence IDs.
+held_out_panels:
+  run01: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run02: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run03: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run04: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run05: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+
+# Supply the complete frozen publication configuration used for numerical
+# reproduction.
+publication_parameters:
+  tle_training_snapshot: null
+  tle_training_start_time_utc: null
+  # Exact user/region initialization and any TLE propagator options, deep-
+  # merged into `ephemeris` after the TLE path and start time are applied.
+  training_ephemeris_overrides: null
+  # Complete executable PHY/link-proxy mapping (noise, reference power,
+  # distance normalization, path loss, shadowing and interference semantics).
+  phy_proxy_parameters: null
+  flow_phi: null
+  cox_baseline_hazard: null
+  gamma_covariate_scale_db: null
+  elevation_covariate_scale_deg: null
+  policy_initializer: null
+  snapshot_stream_initializer: null
+  snapshot_initial_oracle_admitted_load: null
+  multitask_loss_weights: null
+  # Exact frozen schedule used by the scheduled-sampling controls, for example
+  # {schedule: linear, start_probability: ..., maximum_probability: ...,
+  #  start_epoch: ..., end_epoch: ...}.
+  scheduled_sampling_schedule: null
+  snapshot_margin_scales: null
+  node_injection: null
+  validation_episode_count: null
+  dataset_split_seed: null
+  # Exact H=10/budget/minibatch settings for the reported LTT-R and DA-GWM
+  # controls, keyed by ltt_r and da_gwm.
+  learned_control_training_parameters: null
+  # Exact S4/Mamba2 temporal configurations. These remain exploratory only.
+  exploratory_backbone_configs: null
+  # Selected policy weights for snapshot_ltt_r and snapshot_da_gwm.
+  snapshot_learned_control_score_weights: null
+  a3_ttt_unit: null  # exactly "steps" or "seconds"
+  cho_selected_parameters: null  # exact selected CHO parameter mapping
+  load_aware_selected_parameters: null  # exact selected greedy parameter mapping
+
+# Provide one deep-merge simulator override for each reported dimensionless
+# stress index K.
+stress_index_overrides:
+  "100": null
+  "150": null
+  "200": null
+  "300": null
+  "400": null
+  "500": null
+
+# Provide the TLE files and metadata used for each replay. `mixed` may point to
+# a merged snapshot.
+ephemeris_replays:
+  starlink: {tle_path: null, start_time_utc: null, source_url: null, retrieved_at: null}
+  oneweb: {tle_path: null, start_time_utc: null, source_url: null, retrieved_at: null}
+  kuiper: {tle_path: null, start_time_utc: null, source_url: null, retrieved_at: null}
+  mixed: {tle_path: null, start_time_utc: null, source_url: null, retrieved_at: null}
+
+# Provide the exact deep-merge overrides for the named ablations.
+ablation_overrides:
+  full: {}
+  without_kernel_bank: null
+  without_cox_descriptor: null
+  instantaneous_hazard_only: null
+  without_thinning: null
+  cut_load_sinr: null
+  static_flow_ema: null
+  broadcast_aggregation: null
+  no_temporal_memory: null
+
+# Optional pre-existing checkpoints. Leave absent when the package will train
+# new checkpoints; when supplied, each run must reference its own checkpoint.
+checkpoints: {}

@@ -1,3 +1,0 @@
-base: ../default.yaml
-train:
-  task: "one_step"
