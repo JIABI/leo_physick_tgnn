@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check source files and the five-run, matched-episode evidence contract."""
+"""Check source files and a platform-specific matched-episode evidence contract."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ import csv
 import hashlib
 import json
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 only
+    import tomli as tomllib
 from pathlib import Path
 from typing import Iterable
 
@@ -31,6 +34,7 @@ from shared.schemas import ResultRecord, RunManifest, require_relative_path  # n
 
 RunCheckpointKey = tuple[str, str, str, str, str, str, str, str]
 ResultCheckpointKey = tuple[str, str, str, str, str, str]
+PLATFORM_RUNS = {"satellite": 10, "uav": 5}
 
 
 def _sha256(path: Path) -> str:
@@ -275,19 +279,42 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--episodes", type=Path)
     parser.add_argument("--results", type=Path)
     parser.add_argument("--checkpoints", type=Path)
+    parser.add_argument("--platform", choices=sorted(PLATFORM_RUNS))
     parser.add_argument(
         "--checkpoint-root",
         type=Path,
         help="Base directory for checkpoint relative_path values",
     )
-    parser.add_argument("--expected-runs", type=int, default=5)
+    parser.add_argument(
+        "--expected-runs",
+        type=int,
+        help="Optional assertion; must equal the selected platform contract.",
+    )
     parser.add_argument("--expected-episodes", type=int, default=30)
     parser.add_argument("--json", type=Path)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    evidence_inputs = (
+        args.runs,
+        args.episodes,
+        args.results,
+        args.checkpoints,
+    )
+    if any(value is not None for value in evidence_inputs) and args.platform is None:
+        parser.error("--platform is required when auditing evidence records")
+    expected_runs = None
+    if args.platform is not None:
+        expected_runs = PLATFORM_RUNS[args.platform]
+        if args.expected_runs is not None and args.expected_runs != expected_runs:
+            parser.error(
+                f"--expected-runs must be {expected_runs} for {args.platform}"
+            )
+    elif args.expected_runs is not None:
+        parser.error("--expected-runs requires --platform")
     root = args.root.expanduser().resolve()
     errors = audit_public_paths(root)
     static_errors, static_counts = _static_source_errors(root)
@@ -296,7 +323,12 @@ def main(argv: list[str] | None = None) -> int:
     run_rows: list[RunManifest] = []
     if args.runs is not None:
         run_rows = read_run_manifests(args.runs)
-        errors.extend(validate_run_identity(run_rows, expected_runs=args.expected_runs))
+        errors.extend(validate_run_identity(run_rows, expected_runs=expected_runs))
+        errors.extend(
+            f"run manifest platform is {row.platform!r}, expected {args.platform!r}"
+            for row in run_rows
+            if row.platform != args.platform
+        )
 
     if args.episodes is not None:
         episode_rows = read_episode_manifests(args.episodes)
@@ -313,9 +345,14 @@ def main(argv: list[str] | None = None) -> int:
         errors.extend(
             audit_result_records(
                 result_rows,
-                expected_runs=args.expected_runs,
+                expected_runs=expected_runs,
                 expected_episodes=args.expected_episodes,
             )
+        )
+        errors.extend(
+            f"result platform is {row.platform!r}, expected {args.platform!r}"
+            for row in result_rows
+            if row.platform != args.platform
         )
 
     if args.checkpoints is not None and args.runs is None:

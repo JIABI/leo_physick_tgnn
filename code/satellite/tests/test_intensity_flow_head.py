@@ -133,6 +133,53 @@ def test_tgn_predict_step_does_not_require_supervision_target():
     assert target.shape == (5, 1)
 
 
+def test_configured_time_encoding_is_consumed_and_changes_memory():
+    torch.manual_seed(31)
+    cfg = _cfg()
+    cfg["model"]["time_encoding_dim"] = 16
+    model = build_model(cfg).eval()
+    step_at_zero = _step(include_target=False)
+    step_at_one = {
+        name: value.clone() if isinstance(value, torch.Tensor) else value
+        for name, value in step_at_zero.items()
+    }
+    step_at_one["t"] = 1
+
+    with torch.no_grad():
+        _, memory_at_zero = model.predict_step(
+            step_at_zero,
+            None,
+            torch.device("cpu"),
+        )
+        _, memory_at_one = model.predict_step(
+            step_at_one,
+            None,
+            torch.device("cpu"),
+        )
+
+    assert model.time_encoding_dim == 16
+    assert model.time_encoder is not None
+    assert model.time_encoder.dimension == 16
+    assert model.time_to_message is not None
+    assert model.time_to_message.in_features == 16
+    assert not torch.allclose(memory_at_zero, memory_at_one)
+
+
+def test_configured_time_encoding_requires_a_valid_step_epoch():
+    cfg = _cfg()
+    cfg["model"]["time_encoding_dim"] = 16
+    model = build_model(cfg)
+    missing = _step()
+    missing.pop("t")
+    with pytest.raises(ValueError, match="step.t is required"):
+        model.predict_step(missing, None, torch.device("cpu"))
+
+    invalid_cfg = _cfg()
+    invalid_cfg["model"]["time_encoding_dim"] = 0
+    with pytest.raises(ValueError, match="positive integer"):
+        build_model(invalid_cfg)
+
+
 def test_intensity_flow_head_rejects_non_candidate_endpoints():
     head = IntensityFlowHead(in_dim=8, edge_in_dim=7)
     step = _step()

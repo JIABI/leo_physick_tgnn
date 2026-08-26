@@ -1,4 +1,7 @@
+__version__ = "2.0.0"
+
 __all__ = [
+    "__version__",
     "control",
     "data",
     "eval",
@@ -9,6 +12,5 @@ __all__ = [
     "physics",
     "sim",
     "train",
-    "uav_shared",
     "utils",
 ]

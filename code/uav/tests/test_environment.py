@@ -8,7 +8,6 @@ import pytest
 import torch
 
 from uav_cfs import (
-    EstimatedDynamicsParameters,
     ReassociationAction,
     ServiceFailureReason,
     ServicePolicyDescriptors,

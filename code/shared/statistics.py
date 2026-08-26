@@ -1,4 +1,10 @@
-"""Run-first paired hierarchical uncertainty for matched experiments."""
+"""Run-first inference and registered paired analyses.
+
+The satellite manuscript uses equal-weight run means followed by Student-t
+intervals.  The UAV study retains its run-first hierarchical bootstrap.  Both
+contracts live here so callers cannot silently exchange their independent
+units.
+"""
 
 from __future__ import annotations
 
@@ -8,8 +14,186 @@ from enum import Enum
 from typing import Iterable
 
 import numpy as np
+from scipy import stats
 
 from .schemas import ResultRecord
+
+
+@dataclass(frozen=True)
+class StudentTSummary:
+    estimate: float
+    ci_low: float
+    ci_high: float
+    confidence: float
+    run_n: int
+    degrees_of_freedom: int
+    standard_error: float
+
+
+@dataclass(frozen=True)
+class EquivalenceSummary:
+    ratio: float
+    ci_low: float
+    ci_high: float
+    lower_bound: float
+    upper_bound: float
+    alpha: float
+    p_lower: float
+    p_upper: float
+    p_tost: float
+    equivalent: bool
+    paired_n: int
+
+
+def _finite_vector(name: str, values: Iterable[float]) -> np.ndarray:
+    array = np.asarray(list(values), dtype=float).reshape(-1)
+    if array.size < 2:
+        raise ValueError(f"{name} requires at least two independent runs")
+    if not np.isfinite(array).all():
+        raise ValueError(f"{name} contains NaN or Inf")
+    return array
+
+
+def run_first_student_t(
+    run_means: Iterable[float], *, confidence: float = 0.95
+) -> StudentTSummary:
+    """Equal-weight mean and two-sided Student-t interval over run means."""
+
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be in (0, 1)")
+    values = _finite_vector("run_means", run_means)
+    n = int(values.size)
+    estimate = float(values.mean())
+    standard_error = float(values.std(ddof=1) / np.sqrt(n))
+    critical = float(stats.t.ppf(0.5 + confidence / 2.0, df=n - 1))
+    half_width = critical * standard_error
+    return StudentTSummary(
+        estimate=estimate,
+        ci_low=estimate - half_width,
+        ci_high=estimate + half_width,
+        confidence=float(confidence),
+        run_n=n,
+        degrees_of_freedom=n - 1,
+        standard_error=standard_error,
+    )
+
+
+def paired_run_first_student_t(
+    comparison_run_means: Iterable[float],
+    reference_run_means: Iterable[float],
+    *,
+    confidence: float = 0.95,
+) -> StudentTSummary:
+    """Student-t interval for matched run-level differences (comparison-reference)."""
+
+    comparison = _finite_vector("comparison_run_means", comparison_run_means)
+    reference = _finite_vector("reference_run_means", reference_run_means)
+    if comparison.shape != reference.shape:
+        raise ValueError("paired run vectors must have the same length")
+    return run_first_student_t(comparison - reference, confidence=confidence)
+
+
+def paired_geometric_ratio_tost(
+    comparison: Iterable[float],
+    reference: Iterable[float],
+    *,
+    bounds: tuple[float, float] = (0.95, 1.05),
+    alpha: float = 0.05,
+) -> EquivalenceSummary:
+    """Paired log-scale geometric ratio and two one-sided equivalence tests.
+
+    Checkpoint pairs are the independent units.  The returned interval is the
+    ``1-2*alpha`` interval used by TOST (90% when ``alpha=0.05``).
+    """
+
+    x = _finite_vector("comparison", comparison)
+    y = _finite_vector("reference", reference)
+    if x.shape != y.shape:
+        raise ValueError("paired vectors must have the same length")
+    if np.any(x <= 0) or np.any(y <= 0):
+        raise ValueError("geometric ratios require strictly positive values")
+    lower, upper = map(float, bounds)
+    if not 0 < lower < 1 < upper:
+        raise ValueError("equivalence bounds must satisfy 0 < lower < 1 < upper")
+    if not 0 < alpha < 0.5:
+        raise ValueError("alpha must be in (0, 0.5)")
+    log_ratio = np.log(x) - np.log(y)
+    n = int(log_ratio.size)
+    mean = float(log_ratio.mean())
+    se = float(log_ratio.std(ddof=1) / np.sqrt(n))
+    if se == 0.0:
+        p_lower = 0.0 if mean > np.log(lower) else 1.0
+        p_upper = 0.0 if mean < np.log(upper) else 1.0
+        ci_low = ci_high = float(np.exp(mean))
+    else:
+        df = n - 1
+        t_lower = (mean - np.log(lower)) / se
+        t_upper = (mean - np.log(upper)) / se
+        p_lower = float(stats.t.sf(t_lower, df=df))
+        p_upper = float(stats.t.cdf(t_upper, df=df))
+        critical = float(stats.t.ppf(1.0 - alpha, df=df))
+        ci_low = float(np.exp(mean - critical * se))
+        ci_high = float(np.exp(mean + critical * se))
+    p_tost = max(p_lower, p_upper)
+    return EquivalenceSummary(
+        ratio=float(np.exp(mean)),
+        ci_low=ci_low,
+        ci_high=ci_high,
+        lower_bound=lower,
+        upper_bound=upper,
+        alpha=float(alpha),
+        p_lower=p_lower,
+        p_upper=p_upper,
+        p_tost=p_tost,
+        equivalent=bool(p_tost < alpha and ci_low >= lower and ci_high <= upper),
+        paired_n=n,
+    )
+
+
+def holm_adjust(p_values: Iterable[float]) -> list[float]:
+    """Return Holm step-down adjusted P values in original order."""
+
+    p = np.asarray(list(p_values), dtype=float).reshape(-1)
+    if p.size == 0:
+        return []
+    if not np.isfinite(p).all() or np.any((p < 0) | (p > 1)):
+        raise ValueError("p_values must be finite values in [0, 1]")
+    order = np.argsort(p, kind="stable")
+    ranked = p[order]
+    adjusted_ranked = np.maximum.accumulate(
+        np.minimum(1.0, (p.size - np.arange(p.size)) * ranked)
+    )
+    adjusted = np.empty_like(adjusted_ranked)
+    adjusted[order] = adjusted_ranked
+    return [float(value) for value in adjusted]
+
+
+def continuity_corrected_ratio_of_rate_ratios(
+    *,
+    a1_count: float,
+    a1_exposure: float,
+    a2_count: float,
+    a2_exposure: float,
+    b1_count: float,
+    b1_exposure: float,
+    b2_count: float,
+    b2_exposure: float,
+    correction: float = 0.5,
+) -> float:
+    """EXP3 C7 ratio-of-rate-ratios with +0.5 in each event-count cell."""
+
+    counts = np.asarray([a1_count, a2_count, b1_count, b2_count], dtype=float)
+    exposure = np.asarray(
+        [a1_exposure, a2_exposure, b1_exposure, b2_exposure], dtype=float
+    )
+    if np.any(counts < 0) or not np.isfinite(counts).all():
+        raise ValueError("event counts must be finite and non-negative")
+    if np.any(exposure <= 0) or not np.isfinite(exposure).all():
+        raise ValueError("exposures must be finite and positive")
+    if not np.isfinite(correction) or correction < 0:
+        raise ValueError("correction must be finite and non-negative")
+    rates = (counts + float(correction)) / exposure
+    return float((rates[3] / rates[2]) / (rates[1] / rates[0]))
 
 
 class BootstrapMode(str, Enum):

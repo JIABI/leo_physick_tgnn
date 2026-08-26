@@ -1,5 +1,6 @@
 import torch
 
+from leo_pg.control import FixedRankPolicy
 from leo_pg.sim.paper_environment import PaperAlignedLEOEnv
 from leo_pg.sim.state import FailureReason, ServingAction
 
@@ -121,12 +122,53 @@ def test_simulator_authority_rejects_infeasible_requested_action():
     )
     _, execution, _ = env.step_action(_action(observation, [0, 1]))
     assert execution.executed_serving.tolist() == [-1, 1]
-    assert execution.failure_reason[0].item() == int(FailureReason.INFEASIBLE)
+    # The primary protocol materializes only the post-mask graph, so a request
+    # for a rejected geometry edge is no longer a candidate at policy time.
+    assert execution.failure_reason[0].item() == int(FailureReason.NOT_CANDIDATE)
+
+
+def test_empty_authorized_graph_yields_null_proposal_and_executor_abstention():
+    env = PaperAlignedLEOEnv(_cfg())
+    first = env.reset_control()
+    next_observation, _, _ = env.step_action(_action(first, [0, 1]))
+    assert next_observation is not None
+    env.flow.fill_(1.0)
+    empty = env.observe()
+    assert empty.edge_count == 0
+
+    action = FixedRankPolicy(env.fixed_policy_config())(empty)
+    assert action.requested_serving.tolist() == [-1, -1]
+    _, execution, _ = env.step_action(action)
+
+    assert execution.executed_serving.tolist() == [-1, -1]
+    assert torch.all(execution.failure_reason == int(FailureReason.ABSTAIN))
+    assert not torch.any(execution.handover_attempted)
+
+
+def test_frozen_visibility_subset_is_shared_before_per_user_topk():
+    cfg = _cfg()
+    cfg["paper_protocol"]["visibility"] = {
+        "source": "frozen_clipped_distribution",
+        "mean": 1.0,
+        "standard_deviation": 0.1,
+        "minimum": 1,
+        "maximum": 1,
+        "episode_index": 0,
+    }
+    env = PaperAlignedLEOEnv(cfg)
+    observation = env.reset_control()
+
+    assert env.regional_visibility_count == 1
+    assert env.regional_satellite_ids is not None
+    selected = int(env.regional_satellite_ids.item())
+    assert torch.equal(
+        observation.meta["regional_satellite_ids"],
+        env.regional_satellite_ids,
+    )
+    assert observation.candidate_edge_ids.tolist() == [[0, selected], [1, selected]]
 
 
 def test_full_geometric_protocol_can_rank_then_reject_an_infeasible_argmax():
-    from leo_pg.control import FixedRankPolicy
-
     env = PaperAlignedLEOEnv(_cfg(hard_mask=False))
     env.reset_control()
     env.flow[0] = 0.96

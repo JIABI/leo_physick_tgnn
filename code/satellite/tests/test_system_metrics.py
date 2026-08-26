@@ -53,6 +53,13 @@ def test_greedy_assignment_is_deterministic_by_default():
     torch.manual_seed(999)
     second = greedy_assign_from_load(**kwargs)[0]
     assert torch.equal(first, second)
+    previous = torch.where(first >= 0, 1 - first, first)
+    repeated, handover, _ = greedy_assign_from_load(
+        **kwargs,
+        previous_serving=previous,
+    )
+    assert torch.equal(repeated, first)
+    assert torch.equal(handover, (first >= 0) & (previous != first))
 
 
 def test_allocator_reconstruction_is_oracle_consistent():

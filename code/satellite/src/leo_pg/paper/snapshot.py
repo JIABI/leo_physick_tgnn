@@ -1069,6 +1069,9 @@ class SnapshotFixedRankController:
             ranked_edges = user_edges[scores.eligible.index_select(0, user_edges)]
             current = int(observation.current_serving[user].item())
             if ranked_edges.numel() == 0:
+                # Match the shared interface contract: an empty authorized set
+                # is a null proposal, not an implicit request to retain service.
+                requested[user] = -1
                 continue
             best_edge = _best_snapshot_edge(
                 ranked_edges,

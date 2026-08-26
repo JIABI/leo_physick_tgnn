@@ -51,7 +51,7 @@ uav_shared:
   provenance:
     exact:
       status: manuscript_exact
-      source: main_v8.tex and si_v8.tex UAV protocol sections
+      source: main_final.tex and si_final.tex UAV protocol sections (2026-08-25)
     dynamics:
       status: configured
       source: shared UAV protocol configuration
@@ -79,11 +79,11 @@ uav_pipeline:
     stable_edge_id: uav_id_times_station_count_plus_station_id
   policy:
     eta_weight: 1.0
-    intensity_weight: 0.6
-    flow_weight: 0.4
-    hard_feasible_start_mask: false
+    intensity_weight: 0.5
+    flow_weight: 0.7
+    hard_feasible_start_mask: true
     hysteresis: 0.3333333333333333
-    provenance: configured
+    provenance: manuscript_fixed_role_positions
   initializer:
     kind: configured_prior
     eta: 0.5

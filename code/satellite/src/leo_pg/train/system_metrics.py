@@ -71,12 +71,13 @@ def greedy_assign_from_load(
     channel_cfg: Dict[str, Any],
     sinr_min: float = -1.0,
     user_order: Optional[torch.Tensor] = None,
+    previous_serving: Optional[torch.Tensor] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Recompute serving decisions from a predicted sat_load.
 
     Returns:
       serving_sat [K] (local sat id, -1 for fail)
-      handover    [K] bool (dummy here; caller can compute from prev)
+      handover    [K] bool (valid previous and new serving ids differ)
       ho_fail     [K] bool
     """
     device = node_x.device
@@ -90,6 +91,10 @@ def greedy_assign_from_load(
         raise ValueError("sat_load/K_users dimensions do not match node_x")
     if not torch.isfinite(node_x).all() or not torch.isfinite(sat_load).all():
         raise ValueError("allocator inputs must be finite")
+    if previous_serving is not None:
+        previous_serving = previous_serving.to(device=device, dtype=torch.long)
+        if previous_serving.shape != (K_users,):
+            raise ValueError("previous_serving must have shape [K_users]")
     if edge_index.numel() and (
         int(edge_index.min()) < 0 or int(edge_index.max()) >= node_x.size(0)
     ):
@@ -184,5 +189,12 @@ def greedy_assign_from_load(
         else:
             serving[u] = picked
 
-    handover = torch.zeros((K_users,), device=device, dtype=torch.bool)
+    if previous_serving is None:
+        handover = torch.zeros((K_users,), device=device, dtype=torch.bool)
+    else:
+        handover = (
+            (previous_serving >= 0)
+            & (serving >= 0)
+            & (previous_serving != serving)
+        )
     return serving, handover, ho_fail

@@ -13,8 +13,11 @@ five distinct training checkpoints and 30 held-out episodes per run.
 Install the package:
 
 ```bash
+cd code/uav
 python -m pip install -e .
 ```
+
+All remaining commands in this file run from `code/uav`.
 
 Inspect the complete experiment command matrix:
 
@@ -24,6 +27,9 @@ PYTHONPATH=. python cli/run_experiments.py \
   --output-root /path/to/uav_plan \
   --dry-run
 ```
+
+The dry run only writes the task plan. Execution requires the frozen dataset
+and five model checkpoints per method; those assets are not bundled here.
 
 Individual entry points:
 
@@ -37,4 +43,3 @@ PYTHONPATH=. python cli/build_manifest.py --help
 `uav_cfs/experiments.py` is the authoritative task registry.
 `PAPER_TO_CODE_MAP.md` links each paper object to its implementation, and
 `RESULT_SCHEMA.md` describes run-by-episode identity and metric fields.
-

@@ -44,6 +44,7 @@ def _config(output: Path, *, epochs: int = 5) -> dict:
         "paper_train": {
             "epochs": epochs,
             "save_dir": str(output),
+            "optimizer_seed": 23,
             "optimizer": {"name": "adamw", "lr": 5e-4, "weight_decay": 1e-4},
             "clip_grad_norm": 1.0,
             "batch_size_control_graphs": 32,

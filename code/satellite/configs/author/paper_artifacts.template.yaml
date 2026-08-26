@@ -1,6 +1,6 @@
 schema_version: 1
 
-# Supply the five integer seed bundles used for the independent trained runs.
+# Supply the ten integer seed bundles used for the independent trained runs.
 # Replace each null entry before executing a study plan.
 runs:
   - run_id: run01
@@ -33,6 +33,36 @@ runs:
     optimizer_seed: null
     data_order_seed: null
     validation_sampling_seed: null
+  - run_id: run06
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run07
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run08
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run09
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
+  - run_id: run10
+    checkpoint_id: null
+    initialization_seed: null
+    optimizer_seed: null
+    data_order_seed: null
+    validation_sampling_seed: null
 
 # Exactly 30 held-out episode seeds/IDs per run. Conditions within a run reuse
 # this panel and the corresponding exogenous sequence IDs.
@@ -42,6 +72,11 @@ held_out_panels:
   run03: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
   run04: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
   run05: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run06: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run07: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run08: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run09: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
+  run10: {episode_seeds: [], episode_ids: [], exogenous_sequence_ids: []}
 
 # Supply the complete frozen publication configuration used for numerical
 # reproduction.

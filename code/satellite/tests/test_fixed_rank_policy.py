@@ -6,6 +6,13 @@ from leo_pg.control.policy import (
     FixedRankPolicyConfig,
     normalized_ordinal_rank,
 )
+from leo_pg.paper.snapshot import (
+    SnapshotFixedRankController,
+    SnapshotOutput,
+    SnapshotPolicyConfig,
+    SnapshotScoreWeights,
+)
+from leo_pg.paper.snapshot_data import SnapshotControlInput
 from leo_pg.sim.state import (
     ControlObservation,
     PolicyDescriptors,
@@ -83,7 +90,7 @@ def test_explicit_hard_mask_excludes_infeasible_highest_score():
     assert action.requested_serving.tolist() == [2]
 
 
-def test_empty_feasible_set_preserves_current_association():
+def test_empty_feasible_set_produces_explicit_null_proposal():
     observation = _observation(
         edges=((0, 0), (0, 1)),
         gamma=(2.0, 1.0),
@@ -92,15 +99,47 @@ def test_empty_feasible_set_preserves_current_association():
         current=(2,),
     )
     policy = FixedRankPolicy(FixedRankPolicyConfig(hard_feasibility_mask=True))
-    assert policy(observation).requested_serving.tolist() == [2]
+    assert policy(observation).requested_serving.tolist() == [-1]
+
+
+def test_snapshot_empty_feasible_set_produces_explicit_null_proposal():
+    edge_ids = torch.tensor([[0, 0], [0, 1]], dtype=torch.long)
+    descriptors = SnapshotOutput(
+        gamma_edge=torch.tensor([2.0, 1.0]),
+        feasibility_margin_edge=torch.tensor([1.0, 0.5]),
+        admitted_load_node=torch.tensor([0.1, 0.2, 0.3]),
+    )
+    observation = SnapshotControlInput(
+        observation_id=(17, 4),
+        node_x=torch.zeros(4, 7),
+        edge_index=torch.tensor([[0, 0], [1, 2]], dtype=torch.long),
+        edge_z=torch.zeros(2, 7),
+        edge_type=torch.zeros(2, dtype=torch.long),
+        candidate_edge_ids=edge_ids,
+        feasible_edge=torch.tensor([False, False]),
+        current_serving=torch.tensor([2], dtype=torch.long),
+        hold_steps=torch.tensor([12], dtype=torch.long),
+        user_order=torch.tensor([0], dtype=torch.long),
+        descriptors=descriptors,
+        initialized_edge=torch.ones(2, dtype=torch.bool),
+    )
+    controller = SnapshotFixedRankController(
+        SnapshotPolicyConfig(
+            weights=SnapshotScoreWeights(gamma=1.0, feasibility=0.5, load=0.7),
+            hard_feasibility_mask=True,
+        )
+    )
+
+    assert controller(observation, descriptors).requested_serving.tolist() == [-1]
 
 
 @pytest.mark.parametrize(
     ("hold", "intensity", "flow", "expected"),
     [
         (9, (1.0, 0.0), (1.0, 0.0), 0),
-        # Candidate 1 leads by 0.4, below the default 1/k = 0.5 margin.
-        (10, (0.0, 1.0), (1.0, 0.0), 0),
+        # With the manuscript's (gamma, Flow, Intensity)=(1,.7,.5),
+        # candidate 1 clears the explicit 0.5 test margin.
+        (10, (0.0, 1.0), (1.0, 0.0), 1),
         (10, (1.0, 0.0), (1.0, 0.0), 1),
     ],
 )
@@ -157,14 +196,20 @@ def test_equal_composite_score_uses_smaller_satellite_id():
         flow=(1.0, 0.0),
         feasible=(True, True),
     )
-    # Sat 0 wins gamma while sat 1 wins load and intensity. With weights
-    # (1,.4,.6), their composite scores tie exactly.
-    scores = FixedRankPolicy().score(observation)
+    # Sat 0 wins gamma while sat 1 wins load and intensity. This deliberately
+    # symmetric diagnostic configuration gives an exact composite tie; the
+    # published default is tested separately as (1,.7,.5).
+    diagnostic = FixedRankPolicyConfig(
+        gamma_weight=1.0,
+        load_weight=0.5,
+        intensity_weight=0.5,
+    )
+    scores = FixedRankPolicy(diagnostic).score(observation)
     assert scores.total[0].item() == pytest.approx(scores.total[1].item())
-    assert FixedRankPolicy()(observation).requested_serving.tolist() == [0]
+    assert FixedRankPolicy(diagnostic)(observation).requested_serving.tolist() == [0]
 
 
-def test_full_geometric_ranking_is_the_standalone_default():
+def test_authorized_hard_mask_is_the_standalone_default():
     observation = _observation(
         gamma=(0.0, 100.0, 5.0),
         intensity=(2.0, 0.0, 1.0),
@@ -172,7 +217,7 @@ def test_full_geometric_ranking_is_the_standalone_default():
         feasible=(True, False, True),
     )
     policy = FixedRankPolicy()
-    assert policy(observation).requested_serving.tolist() == [1]
+    assert policy(observation).requested_serving.tolist() == [2]
 
 
 def test_nonpolicy_metadata_cannot_change_the_fixed_candidate_set():

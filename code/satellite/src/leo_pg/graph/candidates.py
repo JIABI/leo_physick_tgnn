@@ -85,7 +85,7 @@ def build_elevation_candidates(
         raise ValueError("topk must be positive")
     if not torch.isfinite(torch.tensor(float(minimum_elevation_deg))):
         raise ValueError("minimum_elevation_deg must be finite")
-    K, S = int(user_pos.size(0)), int(sat_pos.size(0))
+    K = int(user_pos.size(0))
     satellite_offset = K if satellite_offset is None else int(satellite_offset)
     elevation = pairwise_elevation_deg(user_pos, sat_pos)
     distance_matrix = torch.cdist(user_pos, sat_pos)

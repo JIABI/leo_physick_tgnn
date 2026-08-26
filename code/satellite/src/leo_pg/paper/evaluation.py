@@ -1043,10 +1043,11 @@ def run_paper_evaluation(
                 protocol_copy["horizon_steps"] = int(horizon)
                 episode_cfg["paper_protocol"] = protocol_copy
 
-            environment_factory = lambda c=episode_cfg: PaperAlignedLEOEnv(
-                copy.deepcopy(c),
-                device=device,
-            )
+            def environment_factory(c=episode_cfg):
+                return PaperAlignedLEOEnv(
+                    copy.deepcopy(c),
+                    device=device,
+                )
             provider_factory = fresh_provider
             if shield_factory is None:
                 paired = run_paired_conditions(

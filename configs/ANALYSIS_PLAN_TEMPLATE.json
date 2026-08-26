@@ -1,20 +1,43 @@
 {
-  "schema_version": 1,
-  "paper_version": "v8",
-  "point_estimate": "equal_weight_mean_of_run_means",
-  "bootstrap": {
-    "mode": "nested_within_run",
-    "draws": 10000,
-    "confidence": 0.95,
-    "paired_keys": [
-      "platform",
-      "condition_id",
-      "stress_id",
-      "split",
-      "run_id",
-      "episode_id",
-      "exogenous_sequence_id"
-    ]
+  "schema_version": 2,
+  "software_version": "2.0.0",
+  "paper_version": "current_main_and_si_2026_08_26",
+  "platform": "satellite",
+  "estimator": "run_first_student_t",
+  "platform_contracts": {
+    "satellite": {
+      "estimator": "run_first_student_t",
+      "independent_unit": "training_run",
+      "point_estimate": "equal_weight_mean_of_run_means",
+      "expected_runs": 10,
+      "expected_episodes_per_run": 30,
+      "confidence": 0.95,
+      "summary_interval": "two_sided_student_t",
+      "contrast_interval": "paired_two_sided_student_t",
+      "degrees_of_freedom": 9
+    },
+    "uav": {
+      "estimator": "run_first_hierarchical_bootstrap",
+      "independent_unit": "training_run",
+      "point_estimate": "equal_weight_mean_of_run_means",
+      "expected_runs": 5,
+      "expected_episodes_per_run": 30,
+      "confidence": 0.95,
+      "bootstrap": {
+        "mode": "nested_within_run",
+        "draws": 10000,
+        "seed": 20260815,
+        "paired_keys": [
+          "platform",
+          "condition_id",
+          "stress_id",
+          "split",
+          "run_id",
+          "episode_id",
+          "exogenous_sequence_id"
+        ]
+      }
+    }
   },
   "primary_metrics": {
     "satellite": [
@@ -49,5 +72,5 @@
   ],
   "summaries": [],
   "contrasts": [],
-  "instructions": "Populate summaries and contrasts from run-by-episode records. Compare native score diagnostics only within the same interface contract."
+  "instructions": "Use one platform per plan and input CSV. For UAV, change the top-level platform to uav and estimator to run_first_hierarchical_bootstrap. Every summary or contrast must repeat the same platform. Compare native score diagnostics only within the same interface contract."
 }

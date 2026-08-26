@@ -1,0 +1,30 @@
+schema_version: 1
+experiment_id: EXP5_PHYSICK_ABLATION
+experiment_configuration_version: EXP5-v1
+design: ordered_four_variant
+interface: intensity_flow
+matched_seed_blocks: 12
+checkpoints_per_variant: 50
+held_out_episodes_per_block: 30
+variants:
+  - mlp
+  - generic_dynamic_mixture
+  - unprojected_physick
+  - projected_physick
+operator:
+  dynamic_components: 16
+  projected_variant_radius: 1.25
+  deployed_factorial_radius: 1.0
+predictive_loss_equivalence:
+  method: paired_log_ratio_tost
+  confidence: 0.90
+  band: [0.95, 1.05]
+adjacent_regret_contrasts:
+  multiplicity_adjustment: holm
+diagnostics:
+  - projection_active_updates
+  - optimizer_update_exposure
+  - projection_active_fraction
+  - operator_jump_p95
+  - expansive_jacobian_fraction
+

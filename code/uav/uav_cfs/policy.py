@@ -2,8 +2,8 @@
 
 The policy consumes only the controller-facing descriptor copy.  Reachability,
 queue admission, service-start feasibility, motion and energy remain simulator
-authority.  ``hard_feasible_start_mask`` is therefore an explicit sensitivity
-switch and is disabled by the primary protocol.
+authority.  Service-start infeasible candidates are removed before ranking in
+the primary manuscript protocol.
 """
 
 from __future__ import annotations
@@ -22,16 +22,16 @@ from .state import (
 
 
 UAV_POLICY_CONTRACT_VERSION = 1
-REPOSITORY_REFERENCE_UAV_SCORE_WEIGHTS = (1.0, 0.6, 0.4)
+REPOSITORY_REFERENCE_UAV_SCORE_WEIGHTS = (1.0, 0.5, 0.7)
 
 
 @dataclass(frozen=True)
 class UAVFixedRankPolicyConfig:
     """Explicit fixed-score configuration.
 
-    The weight order is ``eta``, ``intensity`` and ``station_flow``.  The
-    The manuscript does not report the selected UAV weights. Every release
-    call therefore supplies them from a provenance-labelled YAML mapping.
+    The weight order is ``eta``, ``intensity`` and ``station_flow`` and follows
+    the shared role-position contract (local utility, approach to constraint,
+    resource pressure) = (1.0, 0.5, 0.7).
     """
 
     eta_weight: float

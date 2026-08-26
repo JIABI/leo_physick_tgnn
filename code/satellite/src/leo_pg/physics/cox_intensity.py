@@ -4,11 +4,14 @@ import math
 import torch
 
 def lambda_feas_from_shells(shells: List[Dict[str, Any]], device: torch.device) -> torch.Tensor:
-    """Compute Lambda^{feas}(t) using a simplified closed-form inspired by:
+    """Compute the shell-aggregate feasibility intensity used by the legacy API.
+
+    The compatibility model is the fixed closed form
         Lambda^{feas}(t) = sum_s (P_s Q_s theta_s / (2π)) * sin(alpha_s) * p_feas^(s)(t)
 
-    In real usage, p_feas may be time-varying; here it is a scalar per shell.
-    Returns scalar Tensor on device.
+    with one configured feasibility probability per shell. The manuscript
+    implementation instead uses the integrated edge-level Cox process in
+    ``leo_pg.sim.intensity_flow``.
     """
     if shells is None or len(shells) == 0:
         return torch.tensor(0.0, device=device)
@@ -23,9 +26,10 @@ def lambda_feas_from_shells(shells: List[Dict[str, Any]], device: torch.device) 
     return torch.tensor(total, device=device)
 
 def lambda_feas(edge_ctx: Dict[str, Any], cox_cfg: Dict[str, Any], device: torch.device) -> torch.Tensor:
-    """Edge-wise Lambda^{feas}(t). For now, treat as global background intensity.
-    Extend later by conditioning on latitude/elevation and time.
-    Returns [E] tensor.
+    """Broadcast the configured shell aggregate over compatibility edges.
+
+    This function intentionally implements the historical global-background
+    API. It is not used by the manuscript-aligned ``PaperAlignedLEOEnv``.
     """
     shells = cox_cfg.get("shells", [])
     lam = lambda_feas_from_shells(shells, device=device)

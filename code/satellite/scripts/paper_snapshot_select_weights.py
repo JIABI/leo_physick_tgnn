@@ -218,7 +218,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     payload = {
         "schema_version": 1,
         "artifact_kind": "snapshot_validation_score_weight_selection",
-        "paper_version": "v8",
+        "paper_version": "current_main_and_si_2026_08_26",
         "method": pipeline.method,
         "selection_contract": (
             "episode_first_mean_native_oracle_score_regret_on_validation_split"

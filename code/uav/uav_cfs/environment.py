@@ -274,7 +274,6 @@ class UAVSharedServiceEnv:
         distance: torch.Tensor,
         arrival_energy: torch.Tensor,
     ) -> torch.Tensor:
-        exact = self.protocol.exact
         dynamics = self.protocol.estimated
         reserve = (
             self._reserve_fraction()
@@ -585,12 +584,14 @@ class UAVSharedServiceEnv:
                     user = queue.pop(0)
                 else:
                     if self.perturbation.queue_law == "lowest_energy_first":
-                        key = lambda candidate: (
+                        def key(candidate: int) -> tuple[float, int]:
+                            return (
                             float(state.energy_units[candidate].item()),
                             candidate,
                         )
                     else:
-                        key = lambda candidate: (
+                        def key(candidate: int) -> tuple[float, int]:
+                            return (
                             -float(state.energy_units[candidate].item()),
                             candidate,
                         )

@@ -13,6 +13,7 @@ from ...kernels.physick.physick_message import PhysiCKMessage
 from ...kernels.physick.paper_physick_message import PaperPhysiCKMessage
 from .memory import MemoryBank
 from .readout import Readout
+from .time import HarmonicTimeEncoder
 from ...sim.state import PAPER_EDGE_FEATURE_NAMES
 
 MessageType = Literal["mlp", "kan", "physick"]
@@ -63,6 +64,23 @@ class TGN(nn.Module):
         if not isinstance(temporal_memory, bool):
             raise TypeError("model.temporal_memory must be boolean")
         self.temporal_memory = temporal_memory
+        raw_time_dimension = model_options.get("time_encoding_dim")
+        if raw_time_dimension is None:
+            self.time_encoding_dim = 0
+            self.time_encoder = None
+            self.time_to_message = None
+        else:
+            if isinstance(raw_time_dimension, bool) or int(raw_time_dimension) != raw_time_dimension:
+                raise TypeError("model.time_encoding_dim must be a positive integer")
+            self.time_encoding_dim = int(raw_time_dimension)
+            if self.time_encoding_dim <= 0:
+                raise ValueError("model.time_encoding_dim must be a positive integer")
+            self.time_encoder = HarmonicTimeEncoder(self.time_encoding_dim)
+            self.time_to_message = nn.Linear(
+                self.time_encoding_dim,
+                self.msg_dim,
+                bias=False,
+            )
         raw_mask = model_options.get("edge_feature_mask", [])
         if not isinstance(raw_mask, (list, tuple)):
             raise TypeError("model.edge_feature_mask must be a list")
@@ -206,6 +224,21 @@ class TGN(nn.Module):
         if edge_type is not None:
             edge_type = edge_type.to(device).long()
 
+        time_message: torch.Tensor | None = None
+        if self.time_encoder is not None:
+            if "t" not in step:
+                raise ValueError(
+                    "step.t is required when model.time_encoding_dim is configured"
+                )
+            time_encoding = self.time_encoder(
+                step["t"],
+                device=device,
+                dtype=node_x.dtype,
+            )
+            if self.time_to_message is None:  # pragma: no cover - constructor invariant
+                raise RuntimeError("configured time encoder lacks its message projection")
+            time_message = self.time_to_message(time_encoding)
+
         if mem is None or not self.temporal_memory:
             mem = self.memory.init(node_x)  # [N,mem_dim]
 
@@ -236,6 +269,8 @@ class TGN(nn.Module):
                     msg = message_function(
                         mem[src], mem[dst], z, edge_type=et
                     )
+                    if time_message is not None:
+                        msg = msg + time_message.unsqueeze(0)
                     agg.index_add_(0, dst, msg.to(dtype=agg.dtype))
                     if counts is not None:
                         counts.index_add_(

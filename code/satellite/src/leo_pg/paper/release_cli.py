@@ -178,8 +178,8 @@ def audit_author_manifest(
     requested = set(studies)
     blockers: list[str] = []
     runs = _runs(author)
-    if len(runs) != 5:
-        blockers.append("runs must contain exactly five independent run entries")
+    if len(runs) != 10:
+        blockers.append("runs must contain exactly ten independent run entries")
     run_ids: list[str] = []
     checkpoint_ids: list[str] = []
     for index, run in enumerate(runs):
@@ -611,7 +611,7 @@ class Planner:
             return self._training[cache_key]
         normalized = str(method)
         if normalized not in PAPER_METHODS:
-            raise ValueError(f"method is not in the v8 publication registry: {method}")
+            raise ValueError(f"method is not in the publication registry: {method}")
         condition_override = copy.deepcopy(dict(override or {}))
         if training_objective is not None:
             objective = str(training_objective).strip().lower()
@@ -1186,49 +1186,25 @@ class Planner:
                     )
             return
 
-        if study == "SNAPSHOT-WEIGHT-SELECTION":
+        if study == "SNAPSHOT-WEIGHT-CONTRACT":
             for run in runs:
-                run_id = str(run.get("run_id", "missing_run"))
                 for method in methods:
                     train, config, data, ckpt = self.ensure_training(
                         study=study,
                         run=run,
                         method=method,
-                        label=f"{method}_validation_grid",
+                        label=f"{method}_fixed_role_weights",
                     )
-                    output = (
-                        self.output_root
-                        / "evaluation"
-                        / study
-                        / run_id
-                        / f"{method}_validation_grid.json"
-                    )
-                    self.add(
-                        Task(
-                            task_id=f"{study}:{run_id}:{method}:select",
-                            study=study,
-                            stage="validation_weight_selection",
-                            method=method,
-                            run_id=run_id,
-                            condition="reported_grid",
-                            command=[
-                                "python",
-                                str(
-                                    SATELLITE_ROOT
-                                    / "scripts"
-                                    / "paper_snapshot_select_weights.py"
-                                ),
-                                "--cfg", str(config),
-                                "--data", str(data),
-                                "--ckpt", str(ckpt),
-                                "--method", method,
-                                "--out", str(output),
-                                "--device", self.device,
-                            ],
-                            inputs=[str(config), str(data), str(ckpt)],
-                            outputs=[str(output)],
-                            depends_on=[train],
-                        )
+                    self.add_rollout_evaluation(
+                        study=study,
+                        run=run,
+                        method=method,
+                        label=f"{method}_fixed_role_weights",
+                        train_task=train,
+                        config=config,
+                        dataset=data,
+                        checkpoint=ckpt,
+                        modes=["model", "oracle"],
                     )
             return
 
@@ -1354,7 +1330,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         tasks = planner.build()
         payload = {
             "schema_version": 1,
-            "paper_version": "v8",
+            "paper_version": "current_main_and_si_2026_08_26",
             "satellite_code_root": str(SATELLITE_ROOT),
             "selected_studies": selected,
             "execution_ready": not blockers,

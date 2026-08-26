@@ -26,6 +26,36 @@ class _TinyPredictor(torch.nn.Module):
         return self.projection(value)
 
 
+def test_uav_runtime_profile_dependencies_use_the_published_package() -> None:
+    """Exercise the lazy imports used by the UAV profiling branch."""
+
+    from uav_cfs.config import resolve_uav_shared_config
+    from uav_cfs.data import UAVEpisodeDataset, load_uav_dataset
+    from uav_cfs.environment import UAVSharedServiceEnv
+    from uav_cfs.evaluation import (
+        ConstantUAVPolicyStreamInitializer,
+        carry_model_policy_stream,
+    )
+    from uav_cfs.model import UAV_MODEL_METHOD, load_uav_model_checkpoint
+    from uav_cfs.policy import UAVFixedRankPolicy, UAVFixedRankPolicyConfig
+    from uav_cfs.training import UAVRecordAdapter
+
+    assert callable(resolve_uav_shared_config)
+    assert callable(load_uav_dataset)
+    assert callable(load_uav_model_checkpoint)
+    assert callable(carry_model_policy_stream)
+    assert isinstance(UAV_MODEL_METHOD, str)
+    for dependency in (
+        UAVEpisodeDataset,
+        UAVSharedServiceEnv,
+        ConstantUAVPolicyStreamInitializer,
+        UAVFixedRankPolicy,
+        UAVFixedRankPolicyConfig,
+        UAVRecordAdapter,
+    ):
+        assert dependency is not None
+
+
 def test_runtime_horizon_comes_from_formal_evaluation_not_training_data() -> None:
     root = {
         "paper_evaluation": {"horizon_steps": 600},

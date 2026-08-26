@@ -1,64 +1,72 @@
-schema_version: 1
-paper_version: v8
-title: Controller-facing state design for feedback-coupled world-model control
+schema_version: 2
+software_version: 2.0.0
+title: Predictive accuracy alone does not determine feedback-coupled world-model control
+authoritative_parameter_contract: configs/manuscript_v4.yaml
+authoritative_extended_registry: configs/experiments_v4.yaml
 
-replication_contract:
-  independent_training_runs_per_method: 5
-  held_out_episodes_per_run: 30
-  matched_within_platform:
-    - episode_id
-    - exogenous_sequence_id
-    - initial_state_id
-  checkpoint_reuse_as_training_run: forbidden
-  point_estimate: equal_weight_mean_of_run_means
-  interval: paired_run_first_hierarchical_percentile_bootstrap
-  bootstrap_draws: 10000
-  undefined_denominator: undefined_not_zero
+evidence_contract:
+  code_scope: interface_model_analysis_implementation
+  training_invoked_by_quickstart: false
+  manuscript_results_generated_by_quickstart: false
+  source_data_verification_supported: true
+  semantic_cpu_demo_supported: true
+
+replication_contracts:
+  satellite:
+    independent_reporting_runs_per_cell: 10
+    held_out_episodes_per_run: 30
+    point_estimate: equal_weight_mean_of_run_means
+    interval: two_sided_student_t_95
+    degrees_of_freedom: 9
+  uav:
+    independent_reporting_runs: 5
+    held_out_episodes_per_run: 30
+    point_estimate: equal_weight_mean_of_run_means
+    interval: paired_run_first_hierarchical_bootstrap_95
+    bootstrap_draws: 10000
+  checkpoint_equivalence:
+    independent_paired_seeds_per_contract: 20
+    checkpoint_selection_access: validation_loss_only
+    aggregate_band: [0.95, 1.05]
+    field_band: [0.90, 1.10]
+    interval: paired_geometric_ratio_tost_90
 
 satellite:
   implementation_root: code/satellite
-  authoritative_registry: code/satellite/configs/studies.yaml
-  planner: python -m leo_pg.paper.release_cli
-  studies:
-    FCT-CL: crossed Snapshot/Intensity-Flow by MLP/PhysiCK closed-loop study
-    DEC-K: held-out next-step decision diagnostics
-    STRS-K: reported stress-index sweep
-    LONG-HORIZON-300S: 300-second action-coupled trajectory study
-    FCT-DWELL: dwell sensitivity at 5, 10, 20 and 40 steps
-    EPH-REPLAY: author-supplied public-ephemeris replay
-    ORACLE-LADDER: policy-boundary descriptor substitutions
-    ABLATIONS: component and temporal-memory interventions
-    ROLLOUT-AWARE: teacher forcing, scheduled sampling and H=5/10/20 rollouts
-    SCORE-WEIGHT-SENSITIVITY: fixed-checkpoint score-weight perturbations
-    SNAPSHOT-WEIGHT-SELECTION: validation-only Snapshot score selection
-    LEARNED-CONTROLS: LTT-R and DA-GWM study controls
-    CLASSICAL-CONTROLS: A3, conditional handover and load-aware controls
-  publication_methods:
+  resolved_protocol: code/satellite/configs/paper_protocol.yaml
+  studies: code/satellite/configs/studies.yaml
+  extended_implementations:
+    EXP1: code/satellite/src/leo_pg/paper/extended_experiments.py
+    EXP2: code/satellite/src/leo_pg/paper/crossover.py
+    EXP3: code/satellite/src/leo_pg/paper/extended_experiments.py
+    EXP5: code/satellite/src/leo_pg/paper/extended_experiments.py
+  publication_models:
     - snapshot_mlp
     - snapshot_physick
     - tgn_mlp
     - tgn_kan
     - tgn_physick
-    - snapshot_ltt_r
+    - ltt_r
     - snapshot_da_gwm
-    - da_gwm
-  exploratory_temporal_ablations:
-    - s4
-    - mamba2
+    - intensity_flow_da_gwm
+    - mrg_ppo
+  classical_controls: [a3, conditional_handover, load_aware_greedy]
 
 uav:
   implementation_root: code/uav
-  authoritative_registry: code/uav/uav_cfs/experiments.py
-  dispatcher: python code/uav/cli/run_experiments.py
+  resolved_protocol: code/uav/configs/common.yaml
+  publication_operators: [mlp, kan, physick]
   studies:
-    UAV-OPERATOR: MLP/KAN/PhysiCK ordering and decision diagnostics
-    UAV-DENSITY: density multipliers m=1,2,3,4,5
-    UAV-CAPACITY: capacity factors chi=1.0,0.75,0.5
-    UAV-MISMATCH: four author-parameterized structural mismatches
-    UAV-SUBSTITUTION: local-cue/Intensity/Flow/joint/full descriptor replacement
-    UAV-ABLATION: full/no-Intensity/no-Flow/no-gain/local-cue-only conditions
-  publication_methods:
-    - mlp
-    - kan
-    - physick
+    - UAV-OPERATOR
+    - UAV-DENSITY
+    - UAV-CAPACITY
+    - UAV-MISMATCH
+    - UAV-SUBSTITUTION
+    - UAV-ABLATION
+
+provenance_boundary:
+  EXP4:
+    status: provenance_incomplete
+    full_rerun_enabled: false
+    reason: environment identity, source version, developer, trace split and field mapping are not recorded
 

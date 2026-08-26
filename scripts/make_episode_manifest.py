@@ -17,10 +17,14 @@ from shared.schemas import EpisodeManifest  # noqa: E402
 from shared.seeding import derive_seed, episode_seed_panel  # noqa: E402
 
 
+PLATFORM_RUNS = {"satellite": 10, "uav": 5}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--platform", choices=sorted(PLATFORM_RUNS), required=True)
     parser.add_argument("--episodes", type=int, default=30)
     parser.add_argument("--panel-id", required=True)
     parser.add_argument("--root-seed", type=int, required=True)
@@ -35,9 +39,19 @@ def main() -> int:
         parser.error("the paper manifest requires exactly 30 episodes per run")
 
     runs = read_run_manifests(args.runs)
-    run_errors = validate_run_identity(runs, expected_runs=5)
+    unexpected_platforms = sorted({run.platform for run in runs} - {args.platform})
+    if unexpected_platforms:
+        raise ValueError(
+            f"run manifest contains platforms other than {args.platform!r}: "
+            f"{unexpected_platforms}"
+        )
+    expected_runs = PLATFORM_RUNS[args.platform]
+    run_errors = validate_run_identity(runs, expected_runs=expected_runs)
     if run_errors:
-        raise ValueError("run manifest failed the five-run contract:\n- " + "\n- ".join(run_errors))
+        raise ValueError(
+            f"run manifest failed the {args.platform} {expected_runs}-run contract:\n- "
+            + "\n- ".join(run_errors)
+        )
     rows: list[EpisodeManifest] = []
     fixed = episode_seed_panel(args.root_seed, args.episodes, panel_id=args.panel_id)
     # The same run identity may appear once per compared method in the run

@@ -13,8 +13,8 @@ UAV_SHARED_SNAPSHOT_SCHEMA_VERSION = 1
 
 
 _EXACT_REFERENCE = (
-    "main_v8.tex, UAV shared-service instantiation; "
-    "si_v8.tex, UAV shared-service protocol and reproducibility"
+    "main_final.tex, UAV shared-service instantiation; "
+    "si_final.tex, UAV shared-service protocol and reproducibility"
 )
 
 
@@ -139,7 +139,7 @@ class ManuscriptExactParameters:
 
 @dataclass(frozen=True)
 class EstimatedDynamicsParameters:
-    """Author-supplied dynamics not fixed numerically in the v8 manuscript.
+    """Author-supplied dynamics not fixed numerically in the current manuscript.
 
     No field has a default.  A release configuration must provide every value,
     and its provenance is retained in the resolved configuration manifest.

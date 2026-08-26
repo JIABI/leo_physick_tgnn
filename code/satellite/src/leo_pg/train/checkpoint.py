@@ -54,6 +54,11 @@ def model_signature_from_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "message_passing_layers": int(
                 model_cfg.get("message_passing_layers", 1)
             ),
+            "time_encoding_dim": (
+                None
+                if model_cfg.get("time_encoding_dim") is None
+                else int(model_cfg["time_encoding_dim"])
+            ),
             "edge_chunk": int(
                 cfg.get("train", {}).get("edge_chunk", model_cfg.get("edge_chunk", 50000))
             ),

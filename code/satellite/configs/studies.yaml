@@ -1,10 +1,12 @@
-schema_version: 1
-paper_version: v8
+schema_version: 2
+paper_version: current_main_and_si_2026_08_26
 
 shared:
-  runs: 5
+  runs: 10
   held_out_episodes_per_run: 30
-  bootstrap_draws: 10000
+  inference: run_first_student_t
+  confidence_level: 0.95
+  degrees_of_freedom: 9
   evaluation_horizon_steps: 600
   no_shield_delta: 1.0
 
@@ -80,24 +82,20 @@ studies:
   SCORE-WEIGHT-SENSITIVITY:
     description: Fixed-checkpoint Intensity--Flow score-weight perturbations.
     methods: [tgn_physick]
-    reference: {gamma_weight: 1.0, load_weight: 0.4, intensity_weight: 0.6}
+    reference: {gamma_weight: 1.0, load_weight: 0.7, intensity_weight: 0.5}
     perturbations:
-      reference: {gamma_weight: 1.0, load_weight: 0.4, intensity_weight: 0.6}
-      load_x0p5: {gamma_weight: 1.0, load_weight: 0.2, intensity_weight: 0.6}
-      load_x1p5: {gamma_weight: 1.0, load_weight: 0.6, intensity_weight: 0.6}
-      intensity_x0p5: {gamma_weight: 1.0, load_weight: 0.4, intensity_weight: 0.3}
-      intensity_x1p5: {gamma_weight: 1.0, load_weight: 0.4, intensity_weight: 0.9}
-      load_intensity_x0p75: {gamma_weight: 1.0, load_weight: 0.3, intensity_weight: 0.45}
-      load_intensity_x1p25: {gamma_weight: 1.0, load_weight: 0.5, intensity_weight: 0.75}
+      reference: {gamma_weight: 1.0, load_weight: 0.7, intensity_weight: 0.5}
+      load_x0p5: {gamma_weight: 1.0, load_weight: 0.35, intensity_weight: 0.5}
+      load_x1p5: {gamma_weight: 1.0, load_weight: 1.05, intensity_weight: 0.5}
+      intensity_x0p5: {gamma_weight: 1.0, load_weight: 0.7, intensity_weight: 0.25}
+      intensity_x1p5: {gamma_weight: 1.0, load_weight: 0.7, intensity_weight: 0.75}
     substitution_modes: [model, oracle]
 
-  SNAPSHOT-WEIGHT-SELECTION:
-    description: Validation-only grid selection for the two reported Snapshot cells.
+  SNAPSHOT-WEIGHT-CONTRACT:
+    description: Fixed position-matched weights shared by every Snapshot operator cell.
     methods: [snapshot_mlp, snapshot_physick]
-    score_grid:
-      gamma: [0.5, 0.75, 1.0, 1.25, 1.5]
-      feasibility: [0.2, 0.4, 0.6, 0.8]
-      load: [0.2, 0.4, 0.6, 0.8]
+    score_weights: {gamma: 1.0, feasibility: 0.5, load: 0.7}
+    tuned_by_operator: false
 
   LEARNED-CONTROLS:
     description: Capacity/objective controls in the manuscript.

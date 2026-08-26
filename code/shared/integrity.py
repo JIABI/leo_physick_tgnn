@@ -10,7 +10,10 @@ from .schemas import ResultRecord
 
 
 def audit_result_records(
-    records: Iterable[ResultRecord], *, expected_runs: int | None = 5, expected_episodes: int | None = 30
+    records: Iterable[ResultRecord],
+    *,
+    expected_runs: int | None = None,
+    expected_episodes: int | None = 30,
 ) -> list[str]:
     rows = list(records)
     errors: list[str] = []

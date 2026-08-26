@@ -1,0 +1,5 @@
+base: ../default.yaml
+model:
+  message_type: kan
+  kan_knots: 16
+

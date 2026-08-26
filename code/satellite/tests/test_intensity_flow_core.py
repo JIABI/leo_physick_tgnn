@@ -88,7 +88,8 @@ def test_instantaneous_and_ema_mean_flow_match_the_manuscript_equations():
 def test_mean_flow_clips_before_ema_and_accepts_callable_phi():
     load = torch.tensor([0.9, 0.1])
     admitted = torch.tensor([10.0, 0.0])
-    phi = lambda current: 2.0 * current
+    def phi(current):
+        return 2.0 * current
     instantaneous = instantaneous_mean_flow(
         load,
         admitted,

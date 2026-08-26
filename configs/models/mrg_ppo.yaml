@@ -1,0 +1,140 @@
+schema_version: 1
+method_id: MRG_PPO
+frozen_configuration_id: MRG-PPO-GRU128-v1.0
+role: model_free_comparator
+interface: Snapshot
+
+observation_contract:
+  candidate_generator: geometric_top_k
+  top_k: 6
+  authorization: simulator_authoritative_hard_mask_before_actor_ranking
+  actor_inputs:
+    - current_snapshot_graph
+    - causal_association_history
+    - causal_dwell_history
+    - current_authorization_mask
+  node_feature_names:
+    - position_x
+    - position_y
+    - position_z
+    - velocity_x
+    - velocity_y
+    - velocity_z
+    - snapshot_instantaneous_admitted_load_normalized
+  excluded_inputs:
+    - integrated_intensity
+    - flow_ema
+    - future_targets
+    - simulator_transition_state
+  edge_feature_names:
+    - elevation_normalized
+    - log_distance
+    - snapshot_gamma_normalized
+    - snapshot_feasibility_margin
+    - snapshot_destination_instantaneous_admitted_load_normalized
+    - is_current_association
+    - dwell_normalized
+  proposal:
+    minimum_dwell_steps: 10
+    hysteresis_rank_margin: 1
+    evaluation_selection: deterministic_argmax
+    tie_break: ascending_satellite_identifier
+  execution: shared_simulator_authoritative_executor
+
+model:
+  actor:
+    implementation: pure_pytorch_masked_recurrent_graph_actor
+    graph_layers: 2
+    node_feature_dim: 7
+    history_feature_dim: 2
+    edge_feature_dim: 7
+    association_vocabulary_size: 160
+    association_embedding_dim: 32
+    hidden_dim: 128
+    message_hidden_dim: 320
+    recurrent_cell: GRUCell
+    recurrent_hidden_dim: 128
+    readout_hidden_dim: 384
+    action_distribution: categorical_over_each_users_authorized_candidates
+    reported_online_parameter_count: 731905
+  critic:
+    implementation: pure_pytorch_centralized_graph_critic
+    training_only: true
+    graph_layers: 2
+    node_feature_dim: 7
+    history_feature_dim: 2
+    edge_feature_dim: 7
+    association_vocabulary_size: 160
+    association_embedding_dim: 32
+    hidden_dim: 128
+    message_hidden_dim: 320
+    node_type_count: 2
+    edge_type_count: 8
+    load_summary_dim: 160
+    pooling:
+      - user_embeddings
+      - satellite_embeddings
+      - observed_admitted_load_summary
+    value_mlp_hidden_dim: 128
+    reported_training_only_parameter_count: 687233
+  reported_total_training_parameter_count: 1419138
+
+reward:
+  definition: equal_mean_of_five_bounded_executed_terms
+  weights:
+    delivered_service_p10_ratio: 0.2
+    one_minus_outage_fraction: 0.2
+    one_minus_rejected_handover_fraction: 0.2
+    one_minus_aba_return_fraction: 0.2
+    active_load_balance_inverse_one_plus_cv: 0.2
+
+optimization:
+  algorithm: clipped_PPO_with_GAE
+  discount_gamma: 0.99
+  gae_lambda: 0.95
+  policy_clip_range: 0.20
+  value_loss_coefficient: 0.50
+  optimizer:
+    name: Adam
+    epsilon: 0.00001
+  gradient_norm_cap: 0.5
+  parallel_environments: 8
+  rollout_steps_per_environment: 200
+  ppo_epochs_per_update: 4
+  minibatches_per_epoch: 16
+  ppo_updates_per_seed: 250
+  gradient_optimizer_steps_per_seed: 16000
+  checkpoint_every_updates: 25
+  checkpoint_selection: highest_mean_return_on_fixed_30_episode_validation_set
+
+training_budget:
+  reporting:
+    reporting_seeds: 10
+    episodes_per_seed: 2000
+    steps_per_episode: 200
+    environment_interactions_per_seed: 400000
+    user_action_opportunities_per_seed: 51200000
+    total_environment_interactions: 4000000
+  tuning:
+    learning_rate_candidates:
+      - 0.0001
+      - 0.0003
+    entropy_coefficient_candidates:
+      - 0.005
+      - 0.010
+    tuning_seeds_per_combination: 3
+    interactions_per_tuning_seed: 400000
+    total_environment_interactions: 4800000
+    selection_metric: mean_validation_return
+    validation_episodes: 30
+    # The manuscript and v4 evidence ledger expose the complete grid and
+    # selected configuration ID, but not the winning numeric pair.  Do not
+    # invent it; fill these two fields from the locked run config before training.
+    selected_learning_rate: null
+    selected_entropy_coefficient: null
+
+evaluation:
+  heldout_episodes_per_reporting_seed: 30
+  heldout_steps_per_episode: 600
+  matched_reporting_seeds: 10
+  action_selection: deterministic_argmax

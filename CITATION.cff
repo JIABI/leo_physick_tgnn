@@ -1,8 +1,13 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite the associated article."
-title: "Controller-facing state design for feedback-coupled world-model control"
+message: >-
+  If you use this software, cite this release, the associated manuscript and
+  the version-specific Zenodo source-data record used in your analysis.
+title: "Predictive accuracy alone does not determine feedback-coupled world-model control"
 type: software
-version: "1.0.0"
+version: "2.0.0"
+license: MIT
+repository-code: "https://github.com/JIABI/leo_physick_tgnn"
+url: "https://github.com/JIABI/leo_physick_tgnn"
 authors:
   - family-names: Liu
     given-names: Haochen
@@ -28,11 +33,15 @@ authors:
   - family-names: Wang
     given-names: Ling
     affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
+identifiers:
+  - type: other
+    value: "d096a2020649d360dfffc860309a510734ea6033"
+    description: "Upstream public code revision extended by software version 2.0.0"
 keywords:
   - world models
-  - controller-facing state
-  - feedback-coupled allocation
+  - predictive equivalence
+  - controller-facing interface
+  - feedback-coupled control
   - graph learning
   - low-Earth-orbit networks
   - unmanned aerial vehicles
-

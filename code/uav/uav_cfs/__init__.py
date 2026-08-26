@@ -4,6 +4,8 @@ This package intentionally has no registration side effects in the NTN model,
 environment, data, or configuration factories.
 """
 
+__version__ = "2.0.0"
+
 from .config import (
     ResolvedUAVSharedConfig,
     build_uav_environment,
@@ -163,6 +165,7 @@ from .state import (
 )
 
 __all__ = [
+    "__version__",
     "ConstantUAVPolicyStreamInitializer",
     "REPOSITORY_REFERENCE_UAV_SCORE_WEIGHTS",
     "EstimatedDynamicsParameters",

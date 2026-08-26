@@ -17,15 +17,18 @@ Implemented systems
 ``LTTRWorldModel`` is a real long-context temporal Transformer, not an alias to
 the repository TGN.  Its controlled default is a two-layer edge-conditioned
 spatial front-end followed by a six-layer, width-384 Transformer with eight
-heads, FFN width 1536 and a 200-step context.  This targets the manuscript's
+heads, FFN width 1536 and a 64-step context.  The current-association and dwell
+edge channels supply the causal association/action history at every context
+step. This targets the manuscript's
 approximately 12M-parameter capacity class; exact parameter count depends on
 input widths and must be logged by the experiment runner.  Rollout-loss horizon
 and scheduled-sampling policy are training choices and are intentionally not
 hidden inside the architecture.
 
-``DAGWMWorldModel`` uses the real ``GATv2Conv`` implementation from distribution
-``torch-geometric`` (Python import ``torch_geometric.nn.GATv2Conv``), followed
-by a GRU node-memory update.  It exposes ``decision_aware_loss_hook``: a
+``DAGWMWorldModel`` uses edge-conditioned multi-head GATv2 followed by a GRU
+node-memory update. It prefers ``torch_geometric.nn.GATv2Conv`` when installed
+and otherwise uses the included pure-PyTorch implementation. It exposes
+``decision_aware_loss_hook``: a
 differentiable soft-rank pairwise loss against the oracle fixed-score ordering.
 The hook is additive; the trainer remains responsible for combining it with
 the descriptor loss using an explicit coefficient.
@@ -36,8 +39,8 @@ It keeps the paper TGN's 128-dimensional node memory, 128-dimensional
 readout, and Intensity--Flow head.  Only the GRU update is replaced by an
 official S4, Mamba2, or torchaudio Conformer sequence module.  These methods do
 not route through the independent edge-conditioned LTT-R graph front-end.
-Missing optional dependencies raise an actionable error at construction time
-and never select a toy fallback.
+Optional temporal-ablation dependencies raise an actionable error at
+construction time and never select a toy fallback.
 
 Factory configuration is read from ``paper_baseline``.  LTT-R and DA-GWM may
 also be constructed from a direct baseline mapping.  S4/Mamba2/Conformer must
@@ -625,7 +628,7 @@ class LTTRWorldModel(LongContextGraphWorldModel):
         edge_in_dim: int,
         model_dim: int = 384,
         spatial_layers: int = 2,
-        context_length: int = 200,
+        context_length: int = 64,
         transformer_layers: int = 6,
         transformer_heads: int = 8,
         ffn_dim: int = 1536,
@@ -669,8 +672,8 @@ class DecisionAwareRankingLoss(nn.Module):
         self,
         *,
         gamma_weight: float = 1.0,
-        load_weight: float = 0.4,
-        intensity_weight: float = 0.6,
+        load_weight: float = 0.7,
+        intensity_weight: float = 0.5,
         gamma_scale: float = 10.0,
         flow_scale: float = 1.0,
         log1p_intensity_scale: float = 1.0,
@@ -856,13 +859,11 @@ class DAGWMWorldModel(nn.Module):
             raise ValueError("hidden_dim must be divisible by gat_heads")
         try:
             from torch_geometric.nn import GATv2Conv
-        except (ImportError, ModuleNotFoundError) as exc:
-            raise ImportError(
-                "DA-GWM requires `torch_geometric.nn.GATv2Conv`. Install the "
-                "`torch-geometric` distribution and the matching PyTorch/CUDA "
-                "extension wheels documented at https://pytorch-geometric.readthedocs.io; "
-                "no dense-attention fallback is used."
-            ) from exc
+            self.attention_backend = "torch_geometric"
+        except (ImportError, ModuleNotFoundError):
+            from .gat import PureTorchGATv2Conv as GATv2Conv
+
+            self.attention_backend = "pure_torch"
 
         self.cfg = dict(config or {})
         self.node_encoder = nn.Sequential(
@@ -1142,7 +1143,7 @@ def build_paper_baseline(config: Mapping[str, Any]) -> nn.Module:
             edge_in_dim=edge_in_dim,
             model_dim=baseline.get("model_dim", 384),
             spatial_layers=baseline.get("spatial_layers", 2),
-            context_length=temporal.get("context_length", 200),
+            context_length=temporal.get("context_length", 64),
             transformer_layers=temporal.get("num_layers", 6),
             transformer_heads=temporal.get("num_heads", 8),
             ffn_dim=temporal.get("ffn_dim", 1536),

@@ -20,7 +20,6 @@ from typing import Any, Mapping
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 
 from .config import ResolvedUAVSharedConfig, resolve_uav_shared_protocol
 from .graph import (

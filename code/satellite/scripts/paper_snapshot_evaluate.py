@@ -502,9 +502,9 @@ def main(argv: Sequence[str] | None = None) -> None:
         dataset=test_dataset,
         pipeline=pipeline,
         device=device,
-        resamples=int(defaults.get("bootstrap_resamples", 10_000)),
-        confidence=float(defaults.get("bootstrap_confidence", 0.95)),
-        seed=int(defaults.get("bootstrap_seed", 17)) + 1,
+        resamples=int(defaults.get("diagnostic_bootstrap_resamples", 10_000)),
+        confidence=float(defaults.get("diagnostic_bootstrap_confidence", 0.95)),
+        seed=int(defaults.get("diagnostic_bootstrap_seed", 17)) + 1,
     )
     pt_path, manifest_path = _output_paths(args.out, pipeline.method)
     pt_path.parent.mkdir(parents=True, exist_ok=True)
@@ -611,11 +611,13 @@ def main(argv: Sequence[str] | None = None) -> None:
         metric_units,
         options={
             "bootstrap_resamples": int(
-                defaults.get("bootstrap_resamples", 10_000)
+                defaults.get("diagnostic_bootstrap_resamples", 10_000)
             ),
-            "bootstrap_seed": int(defaults.get("bootstrap_seed", 17)),
+            "bootstrap_seed": int(
+                defaults.get("diagnostic_bootstrap_seed", 17)
+            ),
             "bootstrap_confidence": float(
-                defaults.get("bootstrap_confidence", 0.95)
+                defaults.get("diagnostic_bootstrap_confidence", 0.95)
             ),
             "tail_risk_probability": float(
                 defaults.get("tail_risk_probability", 0.10)

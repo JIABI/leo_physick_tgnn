@@ -1,0 +1,7 @@
+base: ../default.yaml
+model:
+  message_type: physick
+  physick:
+    num_kernels: 16
+    projection_radius: 1.0
+

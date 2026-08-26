@@ -44,8 +44,17 @@ def _positive_int(name: str, value: int) -> int:
 
 
 def _candidate_rows(observation: ControlObservation, user: int) -> torch.Tensor:
+    """Return the shared simulator-authorized candidate universe.
+
+    Current manuscript runs expose only authorized edges.  The explicit
+    feasibility conjunction below also keeps the classical controls correct
+    when they are applied to a diagnostic observation that still contains a
+    wider geometry-only edge set.
+    """
+
     return torch.nonzero(
-        observation.candidate_edge_ids[:, 0] == user,
+        (observation.candidate_edge_ids[:, 0] == user)
+        & observation.sim_descriptors.feasible_edge,
         as_tuple=False,
     ).flatten()
 
@@ -102,14 +111,14 @@ def _action(observation: ControlObservation, requested: torch.Tensor) -> Serving
 class A3Config:
     """Stateful 3GPP-style event-A3 comparator.
 
-    ``ttt_steps`` is expressed in decision epochs.  The manuscript sweep uses
-    ``{1, 3, 5, 8}`` without a recoverable seconds/epoch declaration, so the
-    publication runner records it as a step-domain parameter.
+    ``ttt_seconds`` is the manuscript parameter.  At the 100-ms control
+    interval, the reported {1, 3, 5, 8}-s sweep resolves to
+    {10, 30, 50, 80} consecutive decision epochs.
     """
 
     offset_db: float = 3.0
-    ttt_steps: int | None = 3
-    ttt_seconds: float | None = None
+    ttt_steps: int | None = None
+    ttt_seconds: float | None = 3.0
     dt_ctrl: float = 0.1
     min_dwell_steps: int = 10
 
@@ -421,8 +430,8 @@ def default_controller_sweeps() -> tuple[SweepPoint, ...]:
         for ttt in (1, 3, 5, 8):
             cfg = A3Config(
                 offset_db=offset,
-                ttt_steps=ttt,
-                ttt_seconds=None,
+                ttt_steps=None,
+                ttt_seconds=float(ttt),
                 dt_ctrl=0.1,
                 min_dwell_steps=10,
             )
@@ -432,10 +441,8 @@ def default_controller_sweeps() -> tuple[SweepPoint, ...]:
                     parameters=asdict(cfg),
                     provenance="manuscript_grid",
                     rationale=(
-                        "A3 offset/TTT grid reported in the manuscript table. The "
-                        "table is unitless while prose defines seconds; this primary "
-                        "manifest uses control steps and the API also supports an "
-                        "explicit ttt_seconds conversion."
+                        "A3 offset/TTT grid reported in the manuscript; TTT is in "
+                        "seconds and resolves through the 100-ms control interval."
                     ),
                     selected=(offset == 3.0 and ttt == 3),
                 )
@@ -515,8 +522,11 @@ def expand_controller_sweep_config(
 
     a3 = _grid_mapping(config, "a3")
     a3_offsets = _grid_values(a3, "offsets_db")
-    a3_ttt = _grid_values(a3, "ttt_steps")
-    a3_ttt_unit = str(a3.get("ttt_unit", "steps")).strip().lower()
+    a3_ttt_key = "ttt_seconds" if "ttt_seconds" in a3 else "ttt_steps"
+    a3_ttt = _grid_values(a3, a3_ttt_key)
+    a3_ttt_unit = str(
+        a3.get("ttt_unit", "seconds" if a3_ttt_key == "ttt_seconds" else "steps")
+    ).strip().lower()
     if a3_ttt_unit not in {"steps", "seconds"}:
         raise ValueError("controller_sweeps.a3.ttt_unit must be steps or seconds")
     a3_selected = a3.get("selected", {})
@@ -541,12 +551,12 @@ def expand_controller_sweep_config(
                     provenance=str(a3.get("provenance", "unspecified")),
                     rationale=(
                         "Cartesian expansion of controller_sweeps.a3 offsets_db "
-                        "and ttt_steps."
+                        f"and {a3_ttt_key}."
                     ),
                     selected=selected,
                     grid={
                         "offsets_db": list(a3_offsets),
-                        "ttt_steps": list(a3_ttt),
+                        a3_ttt_key: list(a3_ttt),
                         "ttt_unit": a3_ttt_unit,
                         "declared_selected": dict(a3_selected),
                     },

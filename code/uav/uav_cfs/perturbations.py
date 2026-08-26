@@ -1,6 +1,6 @@
 """Explicit structural perturbations for zero-shot UAV evaluation.
 
-The v8 manuscript names four mismatch families but does not publish their
+The current manuscript names four mismatch families but does not publish their
 numeric magnitudes.  This module implements each transition-law change while
 requiring the missing magnitude or rule to be supplied by the author config.
 """

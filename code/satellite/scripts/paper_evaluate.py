@@ -555,11 +555,13 @@ def main(argv: Sequence[str] | None = None) -> None:
         ),
         "bandwidth_hz": float(evaluation_cfg.get("bandwidth_hz", 1.0)),
         "bootstrap_resamples": int(
-            evaluation_cfg.get("bootstrap_resamples", 10_000)
+            evaluation_cfg.get("diagnostic_bootstrap_resamples", 10_000)
         ),
-        "bootstrap_seed": int(evaluation_cfg.get("bootstrap_seed", 17)),
+        "bootstrap_seed": int(
+            evaluation_cfg.get("diagnostic_bootstrap_seed", 17)
+        ),
         "bootstrap_confidence": float(
-            evaluation_cfg.get("bootstrap_confidence", 0.95)
+            evaluation_cfg.get("diagnostic_bootstrap_confidence", 0.95)
         ),
         "tail_risk_probability": float(
             evaluation_cfg.get("tail_risk_probability", 0.10)

@@ -1,4 +1,4 @@
-# Manuscript v8 to satellite code map
+# Current manuscript to satellite code map
 
 | Manuscript object / evidence | Primary implementation | Runner / output |
 |---|---|---|
@@ -11,10 +11,10 @@
 | Controller-facing descriptor copy and partial substitution | `src/leo_pg/eval/substitution.py`, `src/leo_pg/paper/evaluation.py` | `FCT-CL`, `ORACLE-LADDER` |
 | Fixed rank score, dwell, hysteresis and execution authority | `src/leo_pg/control/policy.py`, `src/leo_pg/sim/paper_environment.py` | all closed-loop studies |
 | Snapshot interface, margin/load fields and isolated dataset | `src/leo_pg/paper/snapshot.py`, `snapshot_data.py` | `paper_snapshot_generate.py` |
-| Snapshot validation score-weight grid | `snapshot.py:SNAPSHOT_SI_SCORE_GRID` | `paper_snapshot_select_weights.py`, `SNAPSHOT-WEIGHT-SELECTION` |
+| Snapshot fixed role-position score weights | `src/leo_pg/paper/snapshot.py`, `configs/paper_protocol.yaml` | shared across Snapshot operator cells; sensitivity grids are diagnostics only |
 | MLP, KAN and PhysiCK message operators | `src/leo_pg/kernels/`, `src/leo_pg/models/tgn/tgn.py` | `FCT-CL`, `DEC-K`, `STRS-K` |
 | PhysiCK kernel bank and signed-l1 projection | `src/leo_pg/kernels/physick/` | TGN--PhysiCK model factory |
-| LTT-R and DA-GWM | `src/leo_pg/paper/baselines.py` | `LEARNED-CONTROLS` |
+| LTT-R and DA-GWM | `src/leo_pg/paper/baselines.py`; exact-identity gate in `model_identity.py` | Executable structural references for `LEARNED-CONTROLS`; their current real counts do not recover the original Table S11 frozen identities |
 | S4 and Mamba2 temporal swaps | `src/leo_pg/paper/backbones.py`, `baselines.py` | exploratory rows of `ABLATIONS` |
 | One-step, scheduled-sampling and action-coupled training | `src/leo_pg/paper/training.py`, `snapshot_training.py` | `paper_train.py`, `paper_snapshot_train.py`, `ROLLOUT-AWARE` |
 | Fixed-checkpoint score-weight perturbations | rank policy + action-coupled evaluator | `SCORE-WEIGHT-SENSITIVITY` |
@@ -24,10 +24,10 @@
 | Dwell sensitivity | policy override only | `FCT-DWELL` at 5/10/20/40 |
 | Component removals | environment/model hooks: `intensity.representation`, `flow.freeze`, `candidates.thinning_enabled`, `model.edge_feature_mask`, `model.temporal_memory`, `model.physick.use_kernel_bank` | exact author `ablation_overrides`, `ABLATIONS` |
 | A3, CHO and load-aware greedy | `src/leo_pg/paper/controllers.py` | `CLASSICAL-CONTROLS` |
-| Outcome, event, proposal/execution and hierarchical-summary primitives | `src/leo_pg/paper/metrics.py`, `src/leo_pg/train/system_metrics.py` | evaluation bundles and shared summarizer |
+| Outcome, event and proposal/execution primitives | `src/leo_pg/paper/metrics.py`, `src/leo_pg/train/system_metrics.py` | evaluation bundles; final satellite inference uses the root run-first Student-t summarizer |
 | Cox/conformal calibration utilities and inactive shield | `src/leo_pg/paper/calibration.py`, `scripts/paper_calibrate.py` | fitted JSON from author-supplied held-out calibration tensor bundle |
 | Shrink--jump/dwell diagnostics | `src/leo_pg/paper/audit.py`, Snapshot metric adapter | evaluation bundle audit records |
-| Five-run / 30-episode pairing and full study DAG | `src/leo_pg/paper/release_cli.py` | `satellite_plan.json` |
+| Ten-run / 30-episode reporting contract and full study DAG | `configs/studies.yaml`, `src/leo_pg/paper/release_cli.py` | `satellite_plan.json`; final intervals are computed from ten equal-weight run means (df=9) |
 
 The publication registry is `src/leo_pg/paper/models.py`. It contains the
 reported methods plus exploratory S4/Mamba2.

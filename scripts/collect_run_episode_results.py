@@ -409,6 +409,13 @@ def _collect_uav(path: Path, entry: Mapping[str, Any]) -> list[ResultRecord]:
         run_seed = int(shard_payload["run_seed"])
         local_episode_index = int(shard_payload["local_episode_index"])
         episode_seed = int(shard_payload["episode_seed"])
+        expected_episode_seed = run_seed * 1_000_000 + local_episode_index
+        if episode_seed != expected_episode_seed:
+            raise ValueError(
+                "UAV episode seed does not match "
+                "run_seed * 1_000_000 + local_episode_index: "
+                f"{relative}"
+            )
         paired_episode_id = str(shard_payload.get("paired_episode_id", "")).strip()
         exogenous_sequence_id = str(shard_payload.get("exogenous_sequence_id", "")).strip()
         if not paired_episode_id or not exogenous_sequence_id:
@@ -482,14 +489,18 @@ ADAPTERS: dict[str, Callable[[Path, Mapping[str, Any]], list[ResultRecord]]] = {
     "uav_cfs_paired_action_coupled_evaluation_v2": _collect_uav,
 }
 
+PLATFORM_RUNS = {"satellite": 10, "uav": 5}
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
-        "--expected-runs", type=int, default=5,
-        help="Independent training runs required per cell (paper default: 5)",
+        "--platform",
+        choices=sorted(PLATFORM_RUNS),
+        required=True,
+        help="Selects the manuscript-exact independent-run contract.",
     )
     parser.add_argument(
         "--expected-episodes", type=int, default=30,
@@ -523,9 +534,15 @@ def main() -> int:
         rows.extend(adapter(path, raw))
     errors = audit_result_records(
         rows,
-        expected_runs=args.expected_runs,
+        expected_runs=PLATFORM_RUNS[args.platform],
         expected_episodes=args.expected_episodes,
     )
+    unexpected_platforms = sorted({row.platform for row in rows} - {args.platform})
+    if unexpected_platforms:
+        errors.append(
+            f"collected records contain platforms other than {args.platform!r}: "
+            f"{unexpected_platforms}"
+        )
     if errors:
         raise ValueError("result integrity audit failed:\n- " + "\n- ".join(errors))
     write_result_records(args.output, rows)
@@ -533,6 +550,8 @@ def main() -> int:
         "registry_version": REGISTRY_VERSION,
         "input_registry_sha256": _sha256(registry_path),
         "record_count": len(rows),
+        "platform": args.platform,
+        "expected_runs": PLATFORM_RUNS[args.platform],
         "output": args.output.name,
         "output_sha256": _sha256(args.output),
         "adapters": sorted({str(item["adapter"]) for item in bundles}),

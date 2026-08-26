@@ -5,11 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from uav_cfs.protocol import (
-    EstimatedDynamicsParameters,
-    ManuscriptExactParameters,
-    UAVSharedProtocol,
-)
+from uav_cfs.protocol import ManuscriptExactParameters, UAVSharedProtocol
 from uav_cfs.config import resolve_uav_shared_protocol
 from uav_cfs.randomness import keyed_order, keyed_uniform
 

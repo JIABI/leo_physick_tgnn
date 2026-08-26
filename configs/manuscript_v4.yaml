@@ -1,0 +1,240 @@
+schema_version: 1
+software_version: 2.0.0
+manuscript:
+  title: Predictive accuracy alone does not determine feedback-coupled world-model control
+  zenodo_concept_doi: 10.5281/zenodo.21966529
+  source_data_release: ControllerFacingState_SourceData_v4.0.0
+  upstream_code_commit: d096a2020649d360dfffc860309a510734ea6033
+
+roles:
+  order: [local_utility, approach_to_constraint, resource_pressure]
+  weights: [1.0, 0.5, 0.7]
+  ranking:
+    local_utility: descending
+    approach_to_constraint: ascending
+    resource_pressure: ascending
+    tie_break: smaller_resource_identifier
+
+satellite:
+  independent_reporting_runs: 10
+  users: 128
+  satellites: 160
+  control_step_s: 0.1
+  physical_step_s: 0.001
+  episode_duration_s: 60
+  evaluation_horizon_steps: 600
+  training_horizon_steps: 200
+  candidate_generation:
+    minimum_elevation_deg: 10.0
+    top_k: 6
+    key: geometry_only
+    hard_feasibility_mask: true
+    infeasible_candidates_entering_rank: 0
+  visibility_factorial:
+    distribution: clipped_normal
+    mean: 47.0
+    standard_deviation: 3.2
+    minimum: 38
+    maximum: 58
+    shared_across_factorial_cells: true
+  feasibility:
+    minimum_sinr_db: -5.0
+    maximum_flow: 0.95
+    satellite_capacity_users: 40
+  service:
+    outage_sinr_db: -3.0
+    bandwidth_hz: 20000000.0
+    tail_probability: 0.10
+  signal:
+    fast_samples_per_control_step: 100
+    percentile: 0.10
+    percentile_rule: nearest_rank_after_db_conversion
+    carrier_frequency_ghz: 20.0
+    transmit_power_dbw: 20.0
+    noise_figure_db: 3.0
+    extra_loss_db: 2.0
+    load_interference_coupling: 0.6
+  flow:
+    arrival_rate: 0.8
+    service_rate: 1.0
+    feedback_strength: 0.25
+    ema_inertia: 0.9
+    clip: [0.0, 1.0]
+  intensity:
+    estimator: integrated_cox_first_violation
+    lookahead_s: 10.0
+    trapezoidal_subintervals: 128
+    baseline_hazard: 0.1
+    beta_sinr: 0.8
+    beta_flow: 0.9
+    beta_elevation: 0.2
+    closed_gate_value: 0.0
+  intensity_flow_interface:
+    descriptors: [sinr_p10, cox_first_violation_intensity, executed_load_flow]
+    gamma_weight: 1.0
+    intensity_weight: 0.5
+    flow_weight: 0.7
+  snapshot_interface:
+    descriptors: [sinr_p10, signed_current_margin, admitted_occupancy]
+    gamma_weight: 1.0
+    margin_weight: 0.5
+    occupancy_weight: 0.7
+    occupancy_threshold: 0.95
+  switching:
+    minimum_dwell_steps: 10
+    minimum_dwell_s: 1.0
+    hysteresis: 0.16666666666666666
+    null_proposal_on_empty_authorized_set: true
+    executor_authority: [joint_admission, capacity]
+  stress:
+    training_label: 100
+    evaluation_labels: [150, 200, 300, 400, 500]
+
+uav:
+  independent_reporting_runs: 5
+  agents: 24
+  stations: 6
+  control_step_s: 1.0
+  training_horizon_steps: 60
+  evaluation_horizon_steps: 120
+  candidate_generation:
+    top_k: 3
+    key: current_travel_and_arrival_energy_utility
+    hard_feasibility_mask: true
+  station:
+    active_service_slots: 2
+    fifo_queue_capacity: 8
+  energy:
+    feasible_arrival_reserve_fraction: 0.15
+  flow:
+    ema_inertia: 0.85
+    queue_weight: 0.45
+    occupancy_weight: 0.35
+    inbound_weight: 0.20
+    clip: [0.0, 1.0]
+  intensity:
+    maximum: 3.0
+    service_start_normalizer_s: 12.0
+    service_start_weight: 0.45
+    arrival_energy_weight: 0.30
+    station_flow_weight: 0.25
+  interface:
+    descriptors: [local_service_utility, composite_service_pressure, station_flow]
+    local_utility_weight: 1.0
+    intensity_weight: 0.5
+    flow_weight: 0.7
+    hysteresis: 0.3333333333333333
+    minimum_dwell_steps: 0
+  stress:
+    capacity_compressions: [1.0, 0.75, 0.5]
+    density_multipliers: [1, 2, 3, 4, 5]
+  data:
+    train_episodes_per_run: 240
+    validation_episodes_per_run: 40
+    nominal_test_episodes_per_run: 80
+    reported_held_out_episodes_per_run: 30
+
+model:
+  temporal_backbone: tgn_gru
+  hidden_dim: 128
+  time_encoding_dim: 16
+  message_dim: 128
+  readout_dim: 128
+  message_passing_layers: 2
+  aggregator: sum
+  dropout: 0.1
+  edge_type_conditioning: true
+  edge_type_vocab: 8
+  message_operators:
+    mlp:
+      activation: relu
+    kan:
+      basis: piecewise_linear_spline
+      knots: 16
+    physick:
+      kernel_count: 16
+      latent_dim: 128
+      descriptor_dim: 16
+      kernel_hidden_dim: 128
+      coefficient_hidden_dim: 128
+      operating_clip: 5.0
+      deployed_projection_radius: 1.0
+  targets:
+    intensity_transform: log1p
+    feasibility_logit_is_auxiliary_only: true
+    persistent_identity_mask: authorized_at_t_and_t_plus_1
+
+training:
+  invoked_by_quickstart: false
+  optimizer: AdamW
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  dropout: 0.1
+  maximum_gradient_norm: 1.0
+  batch_size_control_epoch_graphs: 32
+  epochs: 50
+  checkpoint_selection: minimum_validation_loss
+  default_objective: one_step_teacher_forcing
+  satellite_train_episodes_per_run: 2000
+  held_out_episodes_per_run: 30
+
+comparators:
+  ltt_r:
+    interface: snapshot
+    context_steps: 64
+    model_dim: 384
+    transformer_layers: 6
+    attention_heads: 8
+    feedforward_dim: 1536
+    rollout_supervision_horizon: 10
+    reported_parameters: 12041857
+  da_gwm_snapshot:
+    interface: snapshot
+    hidden_dim: 256
+    graph_attention_layers: 4
+    graph_attention_heads: 8
+    rollout_supervision_horizon: 10
+    reported_parameters: 8527361
+  da_gwm_intensity_flow:
+    interface: intensity_flow
+    hidden_dim: 256
+    graph_attention_layers: 4
+    graph_attention_heads: 8
+    rollout_supervision_horizon: 10
+    reported_parameters: 8684929
+  mrg_ppo:
+    interface: snapshot
+    recurrent_hidden_dim: 128
+    graph_message_layers: 2
+    actor_parameters: 731905
+    critic_parameters: 687233
+    total_training_parameters: 1419138
+    reporting_interactions_per_seed: 400000
+    tuning_interactions: 4800000
+    reporting_seeds: 10
+    evaluation_episodes_per_seed: 30
+    evaluation_steps_per_episode: 600
+
+statistics:
+  satellite_default:
+    independent_unit: training_run
+    interval: two_sided_student_t_95
+    run_count: 10
+    degrees_of_freedom: 9
+  uav_default:
+    independent_unit: training_run
+    interval: paired_hierarchical_bootstrap_95
+    run_count: 5
+    bootstrap_draws: 10000
+  accuracy_trap:
+    independent_paired_runs_per_contract: 20
+    aggregate_equivalence_band: [0.95, 1.05]
+    field_equivalence_band: [0.90, 1.10]
+    aggregate_interval: paired_geometric_ratio_tost_90
+    superiority_interval: paired_seed_t_95
+    checkpoint_selection_access: validation_loss_only
+  aba:
+    primary_window_s: 2.0
+    sensitivity_windows_s: [2.0, 2.5, 3.0, 4.0, 6.0, 10.0]
+    exposure_unit: user_second
+    event: executed_A_to_B_to_A_return

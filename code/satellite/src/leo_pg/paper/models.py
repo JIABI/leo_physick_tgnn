@@ -27,7 +27,7 @@ PAPER_METHODS = (
     *SNAPSHOT_METHODS,
 )
 
-# Methods named in manuscript v8.  S4 and Mamba2 are registered only as
+# Methods named in the current manuscript. S4 and Mamba2 are registered only as
 # exploratory temporal-backbone ablations.  Earlier workspace prototypes also
 # contained Conformer, BigMLP, EdgeAttn and TempTrans implementations; those
 # unreported systems are deliberately absent from this publication registry.

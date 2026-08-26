@@ -8,7 +8,10 @@ import torch
 from leo_pg.sim.state import ControlObservation, ServingAction
 
 
-DEFAULT_SCORE_WEIGHTS = (1.0, 0.4, 0.6)
+# Internal order is (local signal utility, resource pressure, approach to the
+# hard constraint) = (gamma, Flow, Intensity).  This is the manuscript's
+# position-matched role vector (1.0, 0.7, 0.5), not a fitted parameter set.
+DEFAULT_SCORE_WEIGHTS = (1.0, 0.7, 0.5)
 
 
 @dataclass(frozen=True)
@@ -23,7 +26,7 @@ class FixedRankPolicyConfig:
     gamma_weight: float = DEFAULT_SCORE_WEIGHTS[0]
     load_weight: float = DEFAULT_SCORE_WEIGHTS[1]
     intensity_weight: float = DEFAULT_SCORE_WEIGHTS[2]
-    hard_feasibility_mask: bool = False
+    hard_feasibility_mask: bool = True
     min_dwell_steps: int = 10
     hysteresis: float | None = 1.0 / 6.0
 
@@ -252,8 +255,10 @@ class FixedRankPolicy:
             ranked_edges = user_edges[scores.eligible.index_select(0, user_edges)]
             current = int(observation.current_serving[user].item())
             if ranked_edges.numel() == 0:
-                # The transition layer remains authoritative. With no valid
-                # alternative, preserve the current association (including -1).
+                # The controller contract represents an empty post-mask set as
+                # an explicit null proposal.  The transition layer remains
+                # authoritative and records the resulting abstention.
+                requested[user] = -1
                 continue
 
             best_edge = _best_edge(ranked_edges, scores.total, edge_satellites)

@@ -3,8 +3,11 @@ import torch
 import torch.nn as nn
 
 class ForecastHead(nn.Module):
-    """Node-level regression head (debug default).
-    Replace with interference map / load distribution heads as needed.
+    """Generic node-level regression head for the upstream compatibility API.
+
+    Manuscript-aligned models use the typed Intensity--Flow or Snapshot heads;
+    this small head remains available for checkpoint and message-operator unit
+    tests that exercise the original public package surface.
     """
     def __init__(self, out_dim: int = 1, in_dim: int = 64, output_activation: str = "none"):
         super().__init__()

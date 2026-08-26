@@ -1,0 +1,48 @@
+# Compatibility configuration for the reusable low-level TGN entry points.
+# The manuscript-facing protocol is configs/manuscript_v4.yaml at repository
+# root; these values keep the standalone satellite package aligned with its
+# 128-dimensional, two-layer model contract.
+seed: 17
+
+data:
+  path: artifacts/data/satellite_debug.pt
+  split: train
+  num_workers: 0
+  batch_size: 1
+
+model:
+  node_in_dim: 7
+  edge_in_dim: 7
+  edge_type_vocab: 8
+  use_edge_type: true
+  mem_dim: 128
+  msg_dim: 128
+  emb_dim: 128
+  message_type: mlp
+  aggregator: sum
+  dropout: 0.1
+  message_passing_layers: 2
+  time_encoding_dim: 16
+  physick:
+    num_kernels: 16
+    projection_radius: 1.0
+    latent_dim: 128
+    descriptor_dim: 16
+    kernel_hidden_dim: 128
+    coeff_hidden: 128
+    operating_clip: 5.0
+
+head:
+  type: intensity_flow
+  hidden_dim: 128
+  dropout: 0.1
+
+train:
+  task: one_step_teacher_forcing
+  epochs: 50
+  horizon: 200
+  lr: 0.0005
+  weight_decay: 0.0001
+  clip_grad_norm: 1.0
+  device: cpu
+  save_dir: artifacts/checkpoints

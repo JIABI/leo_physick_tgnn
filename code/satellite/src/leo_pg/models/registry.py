@@ -26,7 +26,12 @@ def build_model(cfg: Dict[str, Any]):
                             in_dim=int(model_cfg.get("emb_dim", 64)),
                             output_activation=str(head_cfg.get("output_activation", "none")))
     elif head_type == "ranking":
-        head = RankingHead(in_dim=int(model_cfg.get("emb_dim", 64)))
+        head = RankingHead(
+            in_dim=int(model_cfg.get("emb_dim", 64)),
+            edge_in_dim=int(model_cfg.get("edge_in_dim", 1)),
+            hidden_dim=int(head_cfg.get("hidden_dim", model_cfg.get("emb_dim", 64))),
+            dropout=float(head_cfg.get("dropout", model_cfg.get("dropout", 0.0))),
+        )
     elif head_type == "intensity_flow":
         if int(model_cfg.get("node_in_dim", 0)) != len(PAPER_NODE_FEATURE_NAMES):
             raise ValueError(

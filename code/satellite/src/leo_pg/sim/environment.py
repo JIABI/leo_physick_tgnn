@@ -292,8 +292,21 @@ class MultiUserLEOEnv:
             )
             rate = sinr_to_rate(sinr)
 
-            # Placeholder signaling cost (you can replace with beam-level mapping later)
-            ho_cost = torch.full_like(rate, self.cost_inter_sat)
+            # This legacy environment resolves resources at satellite, rather
+            # than beam, granularity.  A candidate therefore incurs the
+            # configured inter-satellite cost only when it differs from the
+            # user's current serving satellite; initial attachment and staying
+            # on the same satellite incur no handover cost.  Beam-level costs
+            # are used only by simulators that expose an explicit beam ID.
+            previous_for_edge = self.prev_serving_sat[src_u]
+            changes_satellite = (previous_for_edge >= 0) & (
+                previous_for_edge != dst_s
+            )
+            ho_cost = torch.where(
+                changes_satellite,
+                torch.full_like(rate, self.cost_inter_sat),
+                torch.zeros_like(rate),
+            )
 
             # Ensure descriptor context has the expected keys
             edge_ctx["src_u"] = edge_ctx.get("src_u", src_u)

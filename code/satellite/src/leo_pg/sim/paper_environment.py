@@ -14,6 +14,11 @@ from ..graph.candidates import (
     build_elevation_candidates,
     elevation_for_edges,
 )
+from .visibility import (
+    FrozenVisibilityConfig,
+    sample_frozen_visibility_count,
+    select_frozen_regional_satellites,
+)
 from .ephemeris import (
     EphemerisState,
     HybridUserSatEphemeris,
@@ -279,6 +284,37 @@ class PaperAlignedLEOEnv:
             raise TypeError("candidates.thinning_enabled must be a boolean")
         self.candidate_thinning_enabled = thinning_enabled
 
+        visibility_cfg = _mapping(protocol, "visibility")
+        self.visibility_source = str(
+            visibility_cfg.get("source", "ephemeris_threshold")
+        ).strip().lower()
+        if self.visibility_source not in {
+            "ephemeris_threshold",
+            "frozen_clipped_distribution",
+        }:
+            raise ValueError(
+                "visibility.source must be ephemeris_threshold or "
+                "frozen_clipped_distribution"
+            )
+        self.regional_visibility_count: int | None = None
+        self.regional_satellite_ids: torch.Tensor | None = None
+        visibility_episode_index = int(visibility_cfg.get("episode_index", 0))
+        if self.visibility_source == "frozen_clipped_distribution":
+            visibility_contract = FrozenVisibilityConfig(
+                mean=float(visibility_cfg.get("mean", 47.0)),
+                standard_deviation=float(
+                    visibility_cfg.get("standard_deviation", 3.2)
+                ),
+                minimum=int(visibility_cfg.get("minimum", 38)),
+                maximum=int(visibility_cfg.get("maximum", 58)),
+            )
+            self.regional_visibility_count = sample_frozen_visibility_count(
+                run_seed=self.seed,
+                episode_index=visibility_episode_index,
+                config=visibility_contract,
+                stress_adjustment=int(visibility_cfg.get("stress_adjustment", 0)),
+            )
+
         feasibility_cfg = _mapping(protocol, "feasibility")
         self.gamma_min_db = _finite(
             "feasibility.gamma_min_db", feasibility_cfg.get("gamma_min_db", -5.0)
@@ -416,7 +452,7 @@ class PaperAlignedLEOEnv:
         if "hard_feasibility_mask" not in policy_cfg:
             raise ValueError(
                 "paper_protocol.policy.hard_feasibility_mask must be explicit "
-                "(False=full geometric ranking, True=pre-ranking hard mask)"
+                "(the manuscript protocol requires the pre-ranking hard mask)"
             )
         if not isinstance(policy_cfg["hard_feasibility_mask"], bool):
             raise TypeError("policy.hard_feasibility_mask must be a boolean")
@@ -425,10 +461,10 @@ class PaperAlignedLEOEnv:
             "policy.gamma_weight", policy_cfg.get("gamma_weight", 1.0)
         )
         self.load_weight = _finite(
-            "policy.load_weight", policy_cfg.get("load_weight", 0.4)
+            "policy.load_weight", policy_cfg.get("load_weight", 0.7)
         )
         self.intensity_weight = _finite(
-            "policy.intensity_weight", policy_cfg.get("intensity_weight", 0.6)
+            "policy.intensity_weight", policy_cfg.get("intensity_weight", 0.5)
         )
         if min(self.gamma_weight, self.load_weight, self.intensity_weight) < 0:
             raise ValueError("policy score weights must be non-negative")
@@ -450,6 +486,19 @@ class PaperAlignedLEOEnv:
             positive=True,
         )
         self.ephem, self.K, self.S = self._build_ephemeris(cfg)
+        if self.regional_visibility_count is not None:
+            if self.regional_visibility_count > self.S:
+                raise ValueError(
+                    "sampled regional visibility count exceeds the configured "
+                    "satellite population"
+                )
+            self.regional_satellite_ids = select_frozen_regional_satellites(
+                satellite_count=self.S,
+                visible_count=self.regional_visibility_count,
+                run_seed=self.seed,
+                episode_index=visibility_episode_index,
+                device=self.device,
+            )
         self.flow = torch.zeros(self.S, dtype=torch.float32, device=self.device)
         self.current_serving = torch.full(
             (self.K,), -1, dtype=torch.long, device=self.device
@@ -622,13 +671,48 @@ class PaperAlignedLEOEnv:
         return self._ephemeris_state
 
     def _candidates(self, state: EphemerisState) -> ElevationCandidates:
-        return build_elevation_candidates(
+        # Construct the complete geometry-visible list first.  A frozen
+        # factorial run then restricts it to the one regional satellite subset
+        # shared by all users; only afterwards is each user's list thinned to
+        # the fixed Top-k.  This order makes the 38--58 draw causally effective.
+        candidates = build_elevation_candidates(
             state.pos[: self.K],
             state.pos[self.K :],
             minimum_elevation_deg=self.minimum_elevation_deg,
-            topk=self.topk if self.candidate_thinning_enabled else self.S,
+            topk=self.S,
             user_offset=0,
             satellite_offset=self.K,
+        )
+        if self.regional_satellite_ids is not None and candidates.edge_ids.numel():
+            in_region = torch.isin(
+                candidates.edge_ids[:, 1],
+                self.regional_satellite_ids,
+            )
+            index = torch.nonzero(in_region, as_tuple=False).flatten()
+            candidates = ElevationCandidates(
+                edge_index=candidates.edge_index.index_select(1, index),
+                edge_ids=candidates.edge_ids.index_select(0, index),
+                elevation_deg=candidates.elevation_deg.index_select(0, index),
+                distance=candidates.distance.index_select(0, index),
+            )
+        if not self.candidate_thinning_enabled:
+            return candidates
+        selected = []
+        for user in range(self.K):
+            rows = torch.nonzero(
+                candidates.edge_ids[:, 0] == user, as_tuple=False
+            ).flatten()
+            selected.append(rows[: min(self.topk, rows.numel())])
+        index = (
+            torch.cat(selected)
+            if selected
+            else torch.empty(0, dtype=torch.long, device=self.device)
+        )
+        return ElevationCandidates(
+            edge_index=candidates.edge_index.index_select(1, index),
+            edge_ids=candidates.edge_ids.index_select(0, index),
+            elevation_deg=candidates.elevation_deg.index_select(0, index),
+            distance=candidates.distance.index_select(0, index),
         )
 
     def _interference_summary(self) -> torch.Tensor:
@@ -725,11 +809,11 @@ class PaperAlignedLEOEnv:
         if self.epoch >= self.horizon_steps:
             raise RuntimeError("episode is finished")
         state = self._require_state()
-        candidates = self._candidates(state)
-        gamma = self._gamma_sim(candidates)
+        geometry_candidates = self._candidates(state)
+        gamma = self._gamma_sim(geometry_candidates)
         destination_flow = (
-            self.flow[candidates.edge_ids[:, 1]]
-            if candidates.edge_ids.numel()
+            self.flow[geometry_candidates.edge_ids[:, 1]]
+            if geometry_candidates.edge_ids.numel()
             else torch.empty(0, dtype=self.flow.dtype, device=self.device)
         )
         feasible = feasibility_gate(
@@ -738,6 +822,23 @@ class PaperAlignedLEOEnv:
             gamma_min=self.gamma_min_db,
             flow_max=self.flow_max,
         )
+        geometry_candidate_count = int(geometry_candidates.edge_ids.size(0))
+        if self.hard_feasibility_mask:
+            authorized = torch.nonzero(feasible, as_tuple=False).flatten()
+            candidates = ElevationCandidates(
+                edge_index=geometry_candidates.edge_index.index_select(1, authorized),
+                edge_ids=geometry_candidates.edge_ids.index_select(0, authorized),
+                elevation_deg=geometry_candidates.elevation_deg.index_select(0, authorized),
+                distance=geometry_candidates.distance.index_select(0, authorized),
+            )
+            gamma = gamma.index_select(0, authorized)
+            destination_flow = destination_flow.index_select(0, authorized)
+            feasible = torch.ones(
+                authorized.numel(), dtype=torch.bool, device=self.device
+            )
+        else:
+            candidates = geometry_candidates
+
         cox = integrated_violation_intensity(
             gamma,
             destination_flow,
@@ -794,9 +895,22 @@ class PaperAlignedLEOEnv:
                 "protocol_fingerprint": self.protocol_fingerprint,
                 "capacity_users": self.capacity_users,
                 "hard_feasibility_mask": self.hard_feasibility_mask,
+                "candidate_graph_domain": (
+                    "authorized_post_mask" if self.hard_feasibility_mask
+                    else "geometry_topk_diagnostic"
+                ),
+                "geometry_candidate_count": geometry_candidate_count,
+                "authorized_candidate_count": int(candidates.edge_ids.size(0)),
                 "topk": self.topk,
                 "candidate_thinning_enabled": self.candidate_thinning_enabled,
                 "minimum_elevation_deg": self.minimum_elevation_deg,
+                "visibility_source": self.visibility_source,
+                "regional_visibility_count": self.regional_visibility_count,
+                "regional_satellite_ids": (
+                    None
+                    if self.regional_satellite_ids is None
+                    else self.regional_satellite_ids.clone()
+                ),
                 "gamma_min_db": self.gamma_min_db,
                 "flow_max": self.flow_max,
                 "load_gate_can_activate": self.load_gate_can_activate,

@@ -2,12 +2,14 @@
 # run-specific ephemeris, seeds and study parameters.
 
 seed: 17
-run_seeds: [17, 29, 43, 61, 79]
+run_seeds: [17, 29, 43, 61, 79, 101, 127, 151, 181, 211]
 K_users: 128
-S_sats: 1000
+S_sats: 160
 
 ephemeris:
-  mode: skyfield_tle
+  # Factorial runs use the frozen seeded visibility source below. Public-
+  # ephemeris replay overrides this with skyfield_tle plus a TLE manifest.
+  mode: debug
   tle_path: null
   start_time_utc: null
 
@@ -19,6 +21,15 @@ paper_protocol:
     minimum_elevation_deg: 10.0
     topk: 6
     thinning_enabled: true
+  visibility:
+    source: frozen_clipped_distribution
+    mean: 47.0
+    standard_deviation: 3.2
+    minimum: 38
+    maximum: 58
+    episode_index: 0
+    stress_adjustment: 0
+    shared_across_factorial_cells: true
   feasibility:
     gamma_min_db: -5.0
     flow_max: 0.95
@@ -60,12 +71,12 @@ paper_protocol:
     horizon: 10.0
     num_intervals: 128
   policy:
-    # Protocol A is the manuscript main protocol. Set true only for the
-    # explicitly named hard-mask Protocol B sensitivity.
-    hard_feasibility_mask: false
+    # Simulator authorization is applied before rank construction in every
+    # reported interface/operator cell.
+    hard_feasibility_mask: true
     gamma_weight: 1.0
-    load_weight: 0.4
-    intensity_weight: 0.6
+    load_weight: 0.7
+    intensity_weight: 0.5
     min_dwell_steps: 10
     hysteresis: 0.16666666666666666
   policy_initializer:
@@ -195,28 +206,26 @@ paper_snapshot:
     pair_margin: 0.0
   policies:
     snapshot_mlp:
-      # SI-selected Snapshot+MLP score weights.
-      score_weights: {gamma: 1.0, feasibility: 0.6, load: 0.8}
-      hard_feasibility_mask: false
+      score_weights: {gamma: 1.0, feasibility: 0.5, load: 0.7}
+      hard_feasibility_mask: true
       min_dwell_steps: 10
       hysteresis: 0.16666666666666666
-      provenance: manuscript_selected
+      provenance: manuscript_fixed_role_positions
     snapshot_physick:
-      # SI-selected Snapshot+PhysiCK score weights.
-      score_weights: {gamma: 1.0, feasibility: 0.4, load: 0.8}
-      hard_feasibility_mask: false
+      score_weights: {gamma: 1.0, feasibility: 0.5, load: 0.7}
+      hard_feasibility_mask: true
       min_dwell_steps: 10
       hysteresis: 0.16666666666666666
-      provenance: manuscript_selected
+      provenance: manuscript_fixed_role_positions
     snapshot_ltt_r:
-      score_weights: {gamma: 1.0, feasibility: 0.6, load: 0.8}
-      hard_feasibility_mask: false
+      score_weights: {gamma: 1.0, feasibility: 0.5, load: 0.7}
+      hard_feasibility_mask: true
       min_dwell_steps: 10
       hysteresis: 0.16666666666666666
       provenance: configured_reference
     snapshot_da_gwm:
-      score_weights: {gamma: 1.0, feasibility: 0.6, load: 0.8}
-      hard_feasibility_mask: false
+      score_weights: {gamma: 1.0, feasibility: 0.5, load: 0.7}
+      hard_feasibility_mask: true
       min_dwell_steps: 10
       hysteresis: 0.16666666666666666
       provenance: configured_reference
@@ -225,14 +234,24 @@ paper_snapshot:
 paper_evaluation:
   horizon_steps: 600
   episodes_per_seed: 30
+  reporting_inference:
+    independent_unit: training_run
+    run_count: 10
+    point_estimate: equal_weight_mean_of_run_means
+    interval: two_sided_student_t_95
+    paired_contrast_interval: paired_student_t_95
+    degrees_of_freedom: 9
   modes: [model, oracle, gamma, intensity, flow, intensity_flow]
   output_dir: artifacts/evaluation
   outage_gamma_db: -3.0
   pingpong_window_seconds: 2.0
   bandwidth_hz: 20000000.0
-  bootstrap_resamples: 10000
-  bootstrap_seed: 17001
-  bootstrap_confidence: 0.95
+  # Retained only for within-run nonlinear diagnostic bundles. Manuscript
+  # reporting inference is the run-first Student-t contract above and is
+  # implemented by the root scripts/summarize_results.py entry point.
+  diagnostic_bootstrap_resamples: 10000
+  diagnostic_bootstrap_seed: 17001
+  diagnostic_bootstrap_confidence: 0.95
   tail_risk_probability: 0.10
   metrics:
     enabled: true
@@ -260,12 +279,10 @@ paper_baselines:
     dropout: 0.1
     temporal:
       type: transformer
-      context_length: 200
+      context_length: 64
       num_layers: 6
       num_heads: 8
-      # 1,392 gives 11,997,603 trainable parameters with the Snapshot head,
-      # matching the manuscript's reported 12.0M class.
-      ffn_dim: 1392
+      ffn_dim: 1536
     training:
       objective: action_coupled_multistep
       rollout_horizon: 10
@@ -283,8 +300,8 @@ paper_baselines:
     dropout: 0.1
     decision_loss:
       gamma_weight: 1.0
-      load_weight: 0.4
-      intensity_weight: 0.6
+      load_weight: 0.7
+      intensity_weight: 0.5
       gamma_scale: 10.0
       flow_scale: 1.0
       log1p_intensity_scale: 1.0
@@ -326,11 +343,46 @@ paper_baselines:
       expand: 2
       headdim: 64
       dropout: 0.1
+
+# Exact online-parameter identities reported in Supplementary Table S11 and
+# Zenodo v4 TABLE2_LEARNED_CONTROL_OBSERVED_SUMMARY.csv.  The strict builder in
+# leo_pg.paper.model_identity refuses to attach one of these frozen IDs unless
+# the executable constructor has exactly the reported number of trainable
+# forward parameters.  These values are evidence-ledger targets, not requests
+# to allocate unused padding.
+paper_model_ledger:
+  TGN-PHYSICK-SNAPSHOT-v1.0:
+    method: snapshot_physick
+    interface: snapshot
+    reported_online_parameters: 742913
+    evidence: supplementary_table_s11_and_zenodo_v4_table2
+  TGN-PHYSICK-IF-v1.0:
+    method: tgn_physick
+    interface: intensity_flow
+    reported_online_parameters: 758401
+    evidence: supplementary_table_s11_and_zenodo_v4_table2
+  LTT-R-H10-v1.0:
+    method: snapshot_ltt_r
+    interface: snapshot
+    reported_online_parameters: 12041857
+    evidence: supplementary_table_s11_and_zenodo_v4_table2
+  DA-GWM-SNAPSHOT-H10-v1.0:
+    method: snapshot_da_gwm
+    interface: snapshot
+    reported_online_parameters: 8527361
+    evidence: supplementary_table_s11_and_zenodo_v4_table2
+  DA-GWM-IF-H10-v1.0:
+    method: da_gwm
+    interface: intensity_flow
+    reported_online_parameters: 8684929
+    evidence: supplementary_table_s11_and_zenodo_v4_table2
 controller_sweeps:
   a3:
     offsets_db: [1.0, 3.0, 5.0, 7.0]
-    ttt_steps: [1, 3, 5, 8]
-    selected: {offset_db: 3.0, ttt_steps: 3}
+    ttt_seconds: [1.0, 3.0, 5.0, 8.0]
+    ttt_unit: seconds
+    dt_ctrl: 0.1
+    selected: {offset_db: 3.0, ttt_seconds: 3.0}
     provenance: manuscript_grid
   cho:
     preparation_offset_db: [1.0, 3.0, 5.0]

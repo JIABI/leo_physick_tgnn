@@ -125,7 +125,7 @@ class UAVExperimentTask:
 
 
 def paper_task_matrix() -> tuple[UAVExperimentTask, ...]:
-    """Enumerate every UAV experiment family reported in main/SI v8."""
+    """Enumerate every UAV experiment family reported in the current main/SI."""
 
     tasks: list[UAVExperimentTask] = []
     operators = ("mlp", "kan", "physick")

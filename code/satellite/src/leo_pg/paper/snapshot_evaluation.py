@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 
 from ..sim.paper_environment import PAPER_PROTOCOL_VERSION, PaperAlignedLEOEnv
-from ..sim.state import ExecutionResult, ServingAction, SimulatorDescriptors
+from ..sim.state import ExecutionResult, ServingAction
 from .snapshot import (
     SnapshotFixedRankController,
     SnapshotMarginConfig,

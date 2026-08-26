@@ -3,9 +3,11 @@ from typing import Dict, Any
 import torch
 
 def expected_residual_time(edge_ctx: Dict[str, Any], visibility_radius: float = 0.7) -> torch.Tensor:
-    """A debug residual service time expectation E[T0].
-    In the Cox-based derivation, T0 comes from residual time distribution (often uniform-like in window).
-    Here we approximate remaining time as proportional to how deep inside visibility region a link is.
+    """Return the fixed radial residual-time proxy of the compatibility API.
+
+    This deterministic proxy is used only by the historical descriptor stack.
+    The manuscript path computes integrated first-violation Intensity from the
+    explicit elevation trajectory in ``leo_pg.sim.intensity_flow``.
 
     Returns [E] tensor (seconds).
     """

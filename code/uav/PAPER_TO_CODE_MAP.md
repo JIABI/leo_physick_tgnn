@@ -1,6 +1,6 @@
 # UAV paper-to-code map
 
-| v8 method/result object | Implementation |
+| Current manuscript method/result object | Implementation |
 |---|---|
 | UAV state, motion, energy, queue, occupancy, slots | `uav_cfs/state.py`, `uav_cfs/environment.py` |
 | Top-3 reachable candidate graph and stable identities | `uav_cfs/environment.py::_candidate_edges`, `uav_cfs/graph.py` |
