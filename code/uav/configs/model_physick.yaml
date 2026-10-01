@@ -1,9 +1,0 @@
-extends: common.yaml
-uav_pipeline:
-  model:
-    operator: physick
-    physick_kernel_count: 16
-    physick_projection_radius: 1.0
-    physick_gain_control: true
-  evaluation:
-    output: artifacts/uav/evaluation/physick

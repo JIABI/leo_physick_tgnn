@@ -1,2 +1,0 @@
-[console_scripts]
-cox-physick = cox_physick.cli:main

@@ -1,0 +1,49 @@
+{
+  "tests": {
+    "passed": 48,
+    "command": "python -m pytest tests -q"
+  },
+  "execution_results": {
+    "status": "passed",
+    "mode": "raw_array_reduction",
+    "conditions": 101,
+    "episode_prefixes": 11070,
+    "checks": {
+      "association_encoding": 315,
+      "raw_files_reduced": 315,
+      "episode_field": 132840,
+      "outage_partition": 11070,
+      "episode_coverage": 101,
+      "condition_summary": 5757
+    },
+    "discrepancy_count": 0,
+    "discrepancies": [],
+    "scope": "Numerical execution metrics, aggregation, occupancy and event accounting; geometric visibility and historical training are outside this reduction."
+  },
+  "calibration": {
+    "status": "passed",
+    "n_retention_inputs": 3000,
+    "n_windows": 18000,
+    "n_entry_mark_checks": 72427,
+    "n_summary_checks": 30,
+    "kappa_hat": 0.6033009312876608,
+    "retention_mean": 0.5029890879594723,
+    "errors": [],
+    "scope": "Finite-input prescribed-thinning arrival diagnostic; no closed-loop load calibration."
+  },
+  "manuscript_tables": {
+    "result_rows": 49,
+    "parameter_rows": 5,
+    "rounded_numeric_values_checked": 562,
+    "discrepancies": 0
+  },
+  "data_reorganization": {
+    "source_execution_files": 315,
+    "retained_execution_arrays": "Exact dtype and value equality for association, proposal, rate_Mbps and retained metadata",
+    "summary_numeric_cells_unchanged": 7123,
+    "retention_numeric_cells_unchanged": 15000,
+    "bootstrap_replicates_unchanged": 10000,
+    "unresolved_relative_raw_paths": 0
+  },
+  "scope": "Recorded-result recomputation and executable-path tests. No full-scale training run was performed during data reorganization."
+}

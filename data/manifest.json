@@ -1,0 +1,24 @@
+{
+  "conditions": 101,
+  "raw_files": 315,
+  "episode_prefixes": 11070,
+  "saved_episodes": 9450,
+  "evaluation_prefixes": [
+    200,
+    800
+  ],
+  "statistics": "Learning methods: mean of valid episodes within each training seed, then mean and sample SD of the five seed means. Deterministic methods: mean and sample SD across valid episodes.",
+  "association_encoding": "pair_id = satellite_id * 2 + stored_beam_id; -1 denotes no association. The encoding stride is not the configured number of beams.",
+  "paths": {
+    "summary": "results_summary.csv",
+    "cases": "case_manifest.csv",
+    "raw": "raw_manifest.csv",
+    "episode_prefixes": "episode_manifest.csv",
+    "episode_results": "episode_results.csv",
+    "calibration_inputs": "calibration/retention_inputs.csv",
+    "calibration_records": "calibration",
+    "figure_points": "figure_points",
+    "validation": "validation",
+    "statistics": "statistics"
+  }
+}

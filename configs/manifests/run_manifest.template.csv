@@ -1,1 +1,0 @@
-platform,condition_id,cell_id,method,run_id,training_seed,model_init_seed,optimizer_seed,data_order_seed,checkpoint_id,checkpoint_path,config_path,config_sha256,code_commit,training_status,notes

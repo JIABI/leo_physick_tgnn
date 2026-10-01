@@ -1,6 +1,0 @@
-run_id,training_run_seed,model_initialization_seed,optimizer_seed,data_order_seed,checkpoint_id,checkpoint_relative_path,checkpoint_sha256,config_fingerprint,status
-uav_run_01,,,,,,,,,
-uav_run_02,,,,,,,,,
-uav_run_03,,,,,,,,,
-uav_run_04,,,,,,,,,
-uav_run_05,,,,,,,,,

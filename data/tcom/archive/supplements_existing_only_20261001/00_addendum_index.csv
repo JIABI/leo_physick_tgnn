@@ -1,9 +1,0 @@
-﻿file,rows,operation,existing_results_changed,scope
-01_tgn_existing_test_context_30.csv,30,supplement_only,0,Calculated only from existing records; no new performance values generated
-02_greedy_validation_components_30.csv,30,supplement_only,0,Calculated only from existing records; no new performance values generated
-03_current_drl_coverage_35.csv,35,supplement_only,0,Calculated only from existing records; no new performance values generated
-04_existing_episode_accounting_visibility_12690.csv,12690,supplement_only,0,Calculated only from existing records; no new performance values generated
-05_R1_rules_reference.csv,7,supplement_only,0,Proposed missing rules; not asserted as historical implementation
-06_R1_numeric_rule_reference.csv,30,supplement_only,0,Existing parameters plus explicitly proposed correlation/execution choices
-07_current_DQN_declared_mechanism.csv,26,supplement_only,0,Current declared mechanism only; no new benchmark outcome
-08_remaining_record_gaps.csv,4,supplement_only,0,Specific missing evidence not replaced with invented records

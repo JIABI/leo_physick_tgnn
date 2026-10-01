@@ -1,3 +1,0 @@
-{
-  "checkpoint": "results/tcom/integration/full_cli/selected.pt"
-}

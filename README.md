@@ -1,132 +1,99 @@
-# Cox-PhysiCK: TCOM revision and executable code
+# Cox-PhysiCK
 
-This local release contains the TCOM revision, its supplied results, and an
-executable implementation of the Cox-PhysiCK handover controller. The upstream
-satellite/UAV project is preserved; use **`code/tcom`** for this paper. The
-previous root documentation is retained in [README.upstream.md](README.upstream.md).
+Physics-conditioned temporal graph learning for risk-aware handover in ultra-dense LEO non-terrestrial networks.
 
-## Contents
+This repository contains the implementation, the final manuscript results, and the data needed to recompute their statistics. Start with [the result tables](results/tables/), [the figures](results/figures/), or [the manuscript](paper/paper.pdf).
 
-| Path | Content |
+## Repository layout
+
+| Path | Contents |
 |---|---|
-| `manuscript/tcom/` | Revised LaTeX, PDF, bibliography, figures and change notes |
-| `code/tcom/` | Physical environment, controllers, recurrent models, training, evaluation, metrics and archive tools |
-| `data/tcom/` | All current supplied results, 315 raw execution files, 115-condition index and calibration records |
-| `results/tcom/` | Recomputed audits, editable plots and a complete experiment plan |
-| `docs/TCOM_ENVIRONMENT.md` | Candidate subband, beam, weather, admission and execution rules |
-| `docs/TCOM_MODELS.md` | PhysiCK/TGN/KAN/DQN implementations and training interfaces |
-| `docs/TCOM_RESULTS.md` | File map, units, statistical aggregation and replay commands |
-| `docs/TCOM_REVISION.md` | Necessary manuscript edits and remaining historical mapping |
+| `src/cox_physick/` | Physical environment, controllers, neural models, training, evaluation, metrics, and plotting |
+| `configs/paper.yaml` | Simulation and training configuration |
+| `data/results_summary.csv` | One authoritative numeric summary of the final evaluation conditions |
+| `data/raw/` | Executed associations, requests, and physical rates for the reported experiments |
+| `data/episode_results.csv` | Episode-level counts and metrics supporting the summary |
+| `data/calibration/` | Geometric entries, exposure, retention inputs, and diagnostic windows |
+| `data/figure_points/` | Numeric coordinates and uncertainty values used in Figures 3–5 |
+| `data/validation/` | Validation comparisons reported in the manuscript |
+| `results/tables/` | Numeric CSV tables corresponding to the manuscript and its supporting analyses |
+| `results/figures/` | PDF, SVG, and PNG result figures |
+| `paper/` | Manuscript, bibliography, and its five figures |
+| `docs/` | Data conventions, model specification, and physical execution rules |
+| `tests/` | Mathematical, numerical, and integration checks |
 
 ## Install
 
-Python 3.10 or later, NumPy, SciPy, PyTorch and SGP4 are required. No orbital
-network download is needed for the synthetic Walker constellation.
+Use Python 3.10 or later.
 
 ```bash
-python -m venv .venv-tcom
-source .venv-tcom/bin/activate
-python -m pip install -e 'code/tcom[test]'
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[test]'
 cox-physick inventory
 ```
 
-The package can also be invoked with `python -m cox_physick`.
+The command is also available as `python -m cox_physick`.
 
-## Recompute the supplied results
-
-```bash
-cox-physick reproduce --full --output results/tcom/reproduced
-```
-
-This reads the supplied arrays, recomputes episode metrics and their declared
-aggregation, checks the cost/load identities, replays the recorded calibration
-entries and thinning marks, and regenerates the three numerical figures.
-It does not train models or replace the supplied outcomes. The input archive
-is unchanged. Fresh executions are written to a separate output directory.
-
-For individual tasks:
+## Reproduce the final results
 
 ```bash
-cox-physick audit --full --output results/tcom/audit
-cox-physick calibrate --output results/tcom/calibration
-cox-physick plots --output results/tcom/figures
+cox-physick reproduce --full --output outputs/reproduced
 ```
 
-## Execute physical controllers
+This reduces the recorded execution arrays, checks the episode and condition statistics, reconstructs the calibration diagnostic, and exports the tables and figures. It does not require a trained checkpoint. The input files in `data/` remain unchanged.
+
+Individual commands:
+
+```bash
+cox-physick audit --full --output outputs/audit
+cox-physick calibrate --output outputs/calibration
+cox-physick tables --output results/tables
+cox-physick plots --output results/figures
+```
+
+[Data and metric definitions](docs/results.md) explain the statistical units, denominator conventions, and stored association encoding. Learned-controller standard deviations are calculated across training-seed means; deterministic-controller standard deviations are calculated across test episodes.
+
+## Run physical simulations
 
 ```bash
 cox-physick evaluate --method greedy_analytic --satellites 2000 --users 100 \
   --horizon 800 --prefixes 200 800 --episodes 30 --seed 20001 \
-  --output runs/tcom/greedy_N2000_K100
-cox-physick evaluate --method cox_only --satellites 2000 --users 500 \
-  --horizon 800 --prefixes 200 --episodes 30 --seed 20001 \
-  --output runs/tcom/cox_only_N2000_K500
+  --output runs/greedy
 ```
 
-Each run saves the effective configuration, executed associations, requests,
-rates, occupancy, physical diagnostics, exact geometry, beam trajectories and
-weather. Environment seed 10001 is used for validation and 20001 for testing;
-all methods and training seeds share the same exogenous test episode IDs.
+Rule controllers are `maxsinr_ttt`, `maxrst`, `greedy_analytic`, and `cox_only`. The simulator records geometry, beam schedules, weather, requests, admission, execution, rates, and cost components. See [the environment specification](docs/environment.md).
 
 ## Train and evaluate learned controllers
 
 ```bash
-cox-physick train --method full --seed 1 --device cpu \
-  --output runs/tcom/full_seed1
-cox-physick evaluate --method full --checkpoint runs/tcom/full_seed1/selected.pt \
-  --seed 20001 --episodes 30 --prefixes 200 800 \
-  --output runs/tcom/full_seed1_test
-cox-physick train --method leo_madrl --seed 1 --device cpu \
-  --output runs/tcom/madrl_seed1
+cox-physick train --method full --seed 1 --device cpu --output runs/full_seed1
+cox-physick evaluate --method full --checkpoint runs/full_seed1/selected.pt \
+  --seed 20001 --episodes 30 --prefixes 200 800 --output runs/full_seed1_test
 ```
 
-Use `--device cuda` on a CUDA host. Residual training implements four rounds,
-80 episodes and 5,000 updates per round; DQN uses 256,000 system epochs. These
-are substantial experiments. No pretrained model is silently substituted for
-training. `--resume` resumes an explicitly supplied training-state file.
-All numerical claims in the manuscript continue to use the supplied archive.
+Use `--device cuda` on a CUDA host. Available learned methods are `full`, `mlp213`, `kan_generic`, `leo_madrl`, `no_triplet`, `no_cox_rst`, `eph_physick`, and `mlp_coeff`. TGN-MLP and the no-kernel ablation share the same implementation and result records. The adapted LEO-MADRL comparator uses parameter-sharing hysteretic DQN. Architecture and training details are in [models.md](docs/models.md).
 
-Available controls: `maxsinr_ttt`, `maxrst`, `greedy_analytic`, `cox_only`,
-`mlp213`, `kan_generic`, `leo_madrl`, `full`, `no_triplet`, `no_cox_rst`,
-`eph_physick`, and `mlp_coeff`. The no-kernel ablation aliases `mlp213`.
-
-## Run all recorded conditions
+The default residual-model budget is four rounds of 80 episodes and 5,000 optimizer updates per round. DQN uses 256,000 system epochs. A complete study can be generated and executed with:
 
 ```bash
-cox-physick plan --output results/tcom/experiment_plan.json
-cox-physick run-plan --plan results/tcom/experiment_plan.json \
-  --output runs/tcom/study --device cuda
+cox-physick plan --output outputs/experiment_plan.json
+cox-physick run-plan --plan outputs/experiment_plan.json --output runs/study --device cuda
+cox-physick summarize-runs --runs runs/study --output outputs/new_results
 ```
 
-The plan contains 190 training jobs and 315 evaluation jobs. Prefixes share a
-single 800-step trajectory, density shifts reuse the corresponding K=100 model,
-hysteresis sweeps reuse weights, and the 17 weight settings have separate
-training jobs. `run-plan --stage train|evaluate --job JOB_ID` selects work.
+Use `--stage train` or `--stage evaluate`, together with `--job JOB_ID`, to select a particular job. New runs have their own output records; the supplied paper results remain a fixed dataset. The executable environment specifies resource and weather rules that are not recoverable from the stored association/rate arrays alone; reproducing their statistics is distinct from re-running historical training and physical traces.
 
-## Validation
+## Tests
 
 ```bash
-python -m pytest code/tcom/tests -q
+python -m pytest tests -q
 ```
 
-See `results/tcom/verification.json` for the checks actually run for this
-release. Short training/rollout tests validate executable paths and are kept
-separate from the manuscript experiment results.
+The delivered numerical checks are summarized in `results/verification.json`.
 
-The release specifies previously underspecified band, beam and weather rules
-in its environment configuration. Their implementation is complete; assigning
-those choices to historical result records requires the corresponding author
-confirmation. The source-result calculations are reproducible independently
-of that assignment. See [the revision notes](docs/TCOM_REVISION.md).
+## Manuscript and citation
 
-Aggregate newly executed runs with the same statistical units:
+The paper is **Cox-PhysiCK: Physics-Conditioned Temporal Graph Learning for Risk-Aware Handover in Ultra-Dense LEO-NTNs**. Citation metadata is in `CITATION.cff`.
 
-```bash
-cox-physick summarize-runs --runs runs/tcom/study \
-  --output results/tcom/new_summary
-```
-
-This produces wide and long condition summaries and cost contrasts against
-greedy. Duplicate episode prefixes and mismatched test panels are rejected.
-For Anaconda installations with a failing system `readline` extension, tests
-can run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p no:capture code/tcom/tests -q`.
+To compile the manuscript, run `latexmk -pdf main.tex` inside `paper/`. The code retains the MIT license from the original repository.

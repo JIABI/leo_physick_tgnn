@@ -1,0 +1,67 @@
+{
+  "manuscript_result_rows": 49,
+  "parameter_rows": 5,
+  "tables": [
+    {
+      "manuscript_table": "II",
+      "file": "table_2_nominal.csv",
+      "rows": 8,
+      "description": "Nominal controllers; N_sat=2000, K=100, H=200",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "III",
+      "file": "table_3_horizon.csv",
+      "rows": 14,
+      "description": "Longer prefix; H=800, K=100",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "IV",
+      "file": "table_4_ablations.csv",
+      "rows": 18,
+      "description": "Component comparisons; K=100, H=200; nominal repeats omitted",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "V",
+      "file": "table_5_hysteresis.csv",
+      "rows": 9,
+      "description": "Test-time hysteresis; nominal threshold is in Table II",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "VI",
+      "file": "table_6_parameters.csv",
+      "rows": 5,
+      "description": "Message-module parameters; shared memories and readouts excluded",
+      "source": "module architecture"
+    },
+    {
+      "manuscript_table": "",
+      "file": "cost_components.csv",
+      "rows": 16,
+      "description": "Nominal and K=500 per-user cost components",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "",
+      "file": "attempts_and_outages.csv",
+      "rows": 17,
+      "description": "Nominal and hysteresis event metrics; original aggregation",
+      "source": "data/results_summary.csv"
+    },
+    {
+      "manuscript_table": "",
+      "file": "validation_costs.csv",
+      "rows": 6,
+      "description": "Selected-model validation and test cost differences",
+      "source": "data/validation/selection_group_summary.json"
+    }
+  ],
+  "statistics": {
+    "training_seed_mean": "Mean and sample SD of the five seed-level episode means.",
+    "episode": "Mean and sample SD across the valid evaluation episodes.",
+    "precision": "CSV numbers retain full input precision; manuscript display is rounded."
+  }
+}

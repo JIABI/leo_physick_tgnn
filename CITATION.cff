@@ -1,47 +1,25 @@
 cff-version: 1.2.0
-message: >-
-  If you use this software, cite this release, the associated manuscript and
-  the version-specific Zenodo source-data record used in your analysis.
-title: "Predictive accuracy alone does not determine feedback-coupled world-model control"
+message: "Please cite the accompanying Cox-PhysiCK manuscript when using this code or its results."
+title: "Cox-PhysiCK: Physics-Conditioned Temporal Graph Learning for Risk-Aware Handover in Ultra-Dense LEO-NTNs"
 type: software
-version: "2.0.0"
-license: MIT
-repository-code: "https://github.com/JIABI/leo_physick_tgnn"
-url: "https://github.com/JIABI/leo_physick_tgnn"
 authors:
   - family-names: Liu
     given-names: Haochen
-    affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
-  - family-names: Bi
-    given-names: Jia
-    affiliation: "Scientific Computing Department, Science and Technology Facilities Council, Rutherford Appleton Laboratory, Didcot, United Kingdom"
   - family-names: Liu
     given-names: Ting
-    affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
-  - family-names: Wang
-    given-names: Yufei
-    affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
+  - family-names: Bi
+    given-names: Jia
+  - family-names: Pinilla
+    given-names: Samuel
+  - family-names: Li
+    given-names: Bohan
+  - family-names: Xiang
+    given-names: Luping
+  - family-names: Xie
+    given-names: Jian
   - family-names: Tao
     given-names: Mingliang
-    affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
-  - family-names: Cha
-    given-names: Jaehoon
-    affiliation: "Scientific Computing Department, Science and Technology Facilities Council, Rutherford Appleton Laboratory, Didcot, United Kingdom"
-  - family-names: Thiyagalingam
-    given-names: Jeyan
-    affiliation: "Scientific Computing Department, Science and Technology Facilities Council, Rutherford Appleton Laboratory, Didcot, United Kingdom"
   - family-names: Wang
     given-names: Ling
-    affiliation: "School of Electronics and Information, Northwestern Polytechnical University, Xi'an, China"
-identifiers:
-  - type: other
-    value: "d096a2020649d360dfffc860309a510734ea6033"
-    description: "Upstream public code revision extended by software version 2.0.0"
-keywords:
-  - world models
-  - predictive equivalence
-  - controller-facing interface
-  - feedback-coupled control
-  - graph learning
-  - low-Earth-orbit networks
-  - unmanned aerial vehicles
+repository-code: "https://github.com/JIABI/leo_physick_tgnn"
+license: MIT

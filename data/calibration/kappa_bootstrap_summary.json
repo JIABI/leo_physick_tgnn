@@ -1,0 +1,69 @@
+{
+  "analysis": "Reanalysis of existing calibration count/exposure records",
+  "source": "calibration_trace_counts.csv",
+  "estimator": "sum geometric_entry_count / sum geometric_exposure_kappa_1",
+  "resampling_unit": "Whole trace, with count and exposure paired",
+  "stratification": "Five fixed environment seeds; independently sample 30 traces with replacement within each seed",
+  "seed_order": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "trace_order_within_seed": "Lexicographic trace_id",
+  "n_bootstrap": 10000,
+  "rng": "numpy.random.default_rng",
+  "rng_seed": 20260929,
+  "numpy_version": "2.1.3",
+  "ci_method": "Percentile 95%; numpy.quantile method=linear",
+  "n_traces": 150,
+  "trace_duration_s": 800,
+  "geometric_entry_count": 37186,
+  "geometric_exposure_kappa_1": 61637.56439200538,
+  "kappa_hat": 0.6033009312876607,
+  "ci95_low": 0.5832329955667108,
+  "ci95_high": 0.6234855221139546,
+  "bootstrap_sd": 0.010283913323575627,
+  "bootstrap_mean": 0.6031887778892465,
+  "nominal_kappa": 0.6,
+  "nominal_within_ci": true,
+  "per_seed": [
+    {
+      "seed": 1,
+      "n_traces": 30,
+      "count": 7536,
+      "exposure": 12326.096579379162,
+      "kappa_hat": 0.6113857660832617
+    },
+    {
+      "seed": 2,
+      "n_traces": 30,
+      "count": 7179,
+      "exposure": 12350.213129492517,
+      "kappa_hat": 0.581285515053698
+    },
+    {
+      "seed": 3,
+      "n_traces": 30,
+      "count": 7344,
+      "exposure": 12314.95877709541,
+      "kappa_hat": 0.5963479158094386
+    },
+    {
+      "seed": 4,
+      "n_traces": 30,
+      "count": 7563,
+      "exposure": 12318.351625193824,
+      "kappa_hat": 0.6139620161947601
+    },
+    {
+      "seed": 5,
+      "n_traces": 30,
+      "count": 7564,
+      "exposure": 12327.944280844467,
+      "kappa_hat": 0.6135653948203815
+    }
+  ],
+  "interpretation_scope": "Whole traces are resampled within each fixed environment seed; overlapping windows are not independent bootstrap units."
+}

@@ -1,3 +1,0 @@
-recursive-include configs *.yaml
-include README.md
-include PAPER_TO_CODE_MAP.md

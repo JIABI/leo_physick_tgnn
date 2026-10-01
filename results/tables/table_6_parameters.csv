@@ -1,0 +1,6 @@
+module,mapping,parameters
+TGN-MLP / no-kernel,262 -> 213 -> 128,83411
+TGN-KAN message,262 -> 32 -> 128,112480
+KAN coefficient head,262 -> 32 -> 10,78378
+"Full message, including bank",KAN coefficient head + 10 physical lifts (4 -> 128),83498
+MLP coefficient head,262 -> 287 -> 10,78361

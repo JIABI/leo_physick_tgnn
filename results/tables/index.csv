@@ -1,0 +1,9 @@
+manuscript_table,file,rows,description,source
+II,table_2_nominal.csv,8,"Nominal controllers; N_sat=2000, K=100, H=200",data/results_summary.csv
+III,table_3_horizon.csv,14,"Longer prefix; H=800, K=100",data/results_summary.csv
+IV,table_4_ablations.csv,18,"Component comparisons; K=100, H=200; nominal repeats omitted",data/results_summary.csv
+V,table_5_hysteresis.csv,9,Test-time hysteresis; nominal threshold is in Table II,data/results_summary.csv
+VI,table_6_parameters.csv,5,Message-module parameters; shared memories and readouts excluded,module architecture
+,cost_components.csv,16,Nominal and K=500 per-user cost components,data/results_summary.csv
+,attempts_and_outages.csv,17,Nominal and hysteresis event metrics; original aggregation,data/results_summary.csv
+,validation_costs.csv,6,Selected-model validation and test cost differences,data/validation/selection_group_summary.json
