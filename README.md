@@ -1,246 +1,132 @@
-# Predictive accuracy alone does not determine feedback-coupled world-model control
+# Cox-PhysiCK: TCOM revision and executable code
 
-This repository is the software companion to the manuscript *Predictive
-accuracy alone does not determine feedback-coupled world-model control*. It
-provides a compact controller-facing interface demonstration, a
-machine-readable experiment registry and validation tools for the version 4
-Zenodo source-data release.
+This local release contains the TCOM revision, its supplied results, and an
+executable implementation of the Cox-PhysiCK handover controller. The upstream
+satellite/UAV project is preserved; use **`code/tcom`** for this paper. The
+previous root documentation is retained in [README.upstream.md](README.upstream.md).
 
-Software version 2.0.0 is a new companion release built from the public
-implementation lineage at upstream commit
-`d096a2020649d360dfffc860309a510734ea6033`. That upstream commit predates this
-release and does not contain the version 2.0.0 additions. The source-data
-version series is available under Zenodo concept DOI
-[`10.5281/zenodo.21966529`](https://doi.org/10.5281/zenodo.21966529).
+## Contents
 
-## What this release reproduces
+| Path | Content |
+|---|---|
+| `manuscript/tcom/` | Revised LaTeX, PDF, bibliography, figures and change notes |
+| `code/tcom/` | Physical environment, controllers, recurrent models, training, evaluation, metrics and archive tools |
+| `data/tcom/` | All current supplied results, 315 raw execution files, 115-condition index and calibration records |
+| `results/tcom/` | Recomputed audits, editable plots and a complete experiment plan |
+| `docs/TCOM_ENVIRONMENT.md` | Candidate subband, beam, weather, admission and execution rules |
+| `docs/TCOM_MODELS.md` | PhysiCK/TGN/KAN/DQN implementations and training interfaces |
+| `docs/TCOM_RESULTS.md` | File map, units, statistical aggregation and replay commands |
+| `docs/TCOM_REVISION.md` | Necessary manuscript edits and remaining historical mapping |
 
-The repository separates three tasks that require different evidence and
-compute.
+## Install
 
-| Level | Entry point | What it establishes |
-|---|---|---|
-| Semantic demonstration | `./run_demo.sh` | Runs a deterministic CPU example of candidate identity, controller-visible descriptors, score construction, hard feasibility filtering and execution. It illustrates the prediction-to-action contract; it does not reproduce manuscript effect sizes. |
-| Zenodo source-data validation | `verify-source-data` | Checks package hashes, closed manifest/checksum path sets, CSV counts and shapes, and declared QC status. It does not reinterpret the release's wide source tables. |
-| Statistical estimator implementation | `scripts/summarize_results.py` | Applies the registered platform-specific estimator to canonical long-form run-by-episode records produced by the research workflow. These records are a separate input contract, not the Zenodo v4 wide CSV layout. |
-| Full training and experimental rerun | Not invoked by the root CLI | Requires original training inputs, checkpoints and experiment-specific assets that are not included in the root release workflow. |
-
-The root commands are CPU-only and do not train a model.
-
-## Quick start
-
-From a fresh checkout:
+Python 3.10 or later, NumPy, SciPy, PyTorch and SGP4 are required. No orbital
+network download is needed for the synthetic Walker constellation.
 
 ```bash
-./setup.sh
-source .venv/bin/activate
-./run_demo.sh
-./run_tests.sh
-./verify_paper_contract.sh
+python -m venv .venv-tcom
+source .venv-tcom/bin/activate
+python -m pip install -e 'code/tcom[test]'
+cox-physick inventory
 ```
 
-This is a source-repository workflow: the root package relies on the bundled
-`code/satellite` and `code/uav` trees and is not distributed as a standalone
-wheel. Use `setup.sh` from the repository checkout.
+The package can also be invoked with `python -m cox_physick`.
 
-`setup.sh` creates an isolated `.venv` and installs the root package, the two
-platform runtimes used by the demonstration and the test runner. It does not install
-the optional satellite paper-training extras. Activating the environment, as
-shown above, also makes the direct `python -m ...` examples below portable.
-The demonstration writes only to
-the repository's ignored output directory. See
-[ENVIRONMENT.md](ENVIRONMENT.md) for manual installation and platform notes.
-Without arguments, `run_tests.sh` runs the root release-contract suite followed
-by the satellite and UAV suites.
-
-## Command-line interface
-
-The stable entry point is:
+## Recompute the supplied results
 
 ```bash
-python -m controller_facing_state.cli --help
+cox-physick reproduce --full --output results/tcom/reproduced
 ```
 
-Its public subcommands are:
+This reads the supplied arrays, recomputes episode metrics and their declared
+aggregation, checks the cost/load identities, replays the recorded calibration
+entries and thinning marks, and regenerates the three numerical figures.
+It does not train models or replace the supplied outcomes. The input archive
+is unchanged. Fresh executions are written to a separate output directory.
+
+For individual tasks:
 
 ```bash
-python -m controller_facing_state.cli demo --help
-python -m controller_facing_state.cli experiments --help
-python -m controller_facing_state.cli verify-config --help
-python -m controller_facing_state.cli audit-model-identities --help
-python -m controller_facing_state.cli verify-source-data --help
+cox-physick audit --full --output results/tcom/audit
+cox-physick calibrate --output results/tcom/calibration
+cox-physick plots --output results/tcom/figures
 ```
 
-- `demo` runs the deterministic controller-facing-interface example.
-- `experiments` lists the registered study identifiers; `--id FCT-CL` or
-  `--id EXP1` (and the corresponding EXP2--EXP5 identifiers) prints a complete
-  design record.
-- `verify-config` checks the frozen values in the bundled manuscript protocol.
-- `audit-model-identities` constructs the five Table S11 structural references,
-  reports their real parameter counts and refuses exact frozen-ID claims when
-  they differ. Add `--require-exact` when a recovered constructor is expected.
-- `verify-source-data` checks an unpacked Zenodo v4 source-data directory and
-  validates its package-level integrity and declared QC status.
-
-Pass an unpacked Zenodo source-data directory to the contract script to run
-both configuration and source-data checks:
+## Execute physical controllers
 
 ```bash
-./verify_paper_contract.sh ./source_data/ControllerFacingState_SourceData_v4.0.0
+cox-physick evaluate --method greedy_analytic --satellites 2000 --users 100 \
+  --horizon 800 --prefixes 200 800 --episodes 30 --seed 20001 \
+  --output runs/tcom/greedy_N2000_K100
+cox-physick evaluate --method cox_only --satellites 2000 --users 500 \
+  --horizon 800 --prefixes 200 --episodes 30 --seed 20001 \
+  --output runs/tcom/cox_only_N2000_K500
 ```
 
-No release command downloads Zenodo data or experiment assets implicitly.
+Each run saves the effective configuration, executed associations, requests,
+rates, occupancy, physical diagnostics, exact geometry, beam trajectories and
+weather. Environment seed 10001 is used for validation and 20001 for testing;
+all methods and training seeds share the same exogenous test episode IDs.
 
-## Statistical estimator interface
-
-The estimator implementation is platform-specific. Satellite summaries use ten
-equal-weight training-run means with two-sided Student-t intervals (df=9), and
-satellite contrasts use paired Student-t intervals over the ten matched run
-means. UAV summaries and paired contrasts use five independent runs with the
-nested-within-run hierarchical bootstrap.
-
-This command consumes the canonical long-form schema written by
-`scripts/collect_run_episode_results.py` from original evaluation bundles. It
-does **not** accept the wide CSV tables in the Zenodo v4 archive directly. The
-archive verifier and the statistical estimator are therefore independent
-entry points. A populated analysis plan and canonical records are required;
-the bundled JSON is a schema/template rather than a ready analysis.
-
-Create one analysis plan per platform from
-`configs/ANALYSIS_PLAN_TEMPLATE.json`, then call the estimator explicitly:
+## Train and evaluate learned controllers
 
 ```bash
-python scripts/summarize_results.py \
-  --platform satellite \
-  --estimator run_first_student_t \
-  --input ./records/satellite_run_episode_results.csv \
-  --analysis-plan ./analysis/satellite_plan.json \
-  --output-dir ./analysis/satellite
-
-python scripts/summarize_results.py \
-  --platform uav \
-  --estimator run_first_hierarchical_bootstrap \
-  --input ./records/uav_run_episode_results.csv \
-  --analysis-plan ./analysis/uav_plan.json \
-  --output-dir ./analysis/uav
+cox-physick train --method full --seed 1 --device cpu \
+  --output runs/tcom/full_seed1
+cox-physick evaluate --method full --checkpoint runs/tcom/full_seed1/selected.pt \
+  --seed 20001 --episodes 30 --prefixes 200 800 \
+  --output runs/tcom/full_seed1_test
+cox-physick train --method leo_madrl --seed 1 --device cpu \
+  --output runs/tcom/madrl_seed1
 ```
 
-The command requires the CLI, plan and input records to name the same platform
-and rejects an estimator assigned to the other platform. Output tables record
-the estimator, run count and either degrees of freedom or bootstrap settings.
+Use `--device cuda` on a CUDA host. Residual training implements four rounds,
+80 episodes and 5,000 updates per round; DQN uses 256,000 system epochs. These
+are substantial experiments. No pretrained model is silently substituted for
+training. `--resume` resumes an explicitly supplied training-state file.
+All numerical claims in the manuscript continue to use the supplied archive.
 
-## Experiment registry
+Available controls: `maxsinr_ttt`, `maxrst`, `greedy_analytic`, `cox_only`,
+`mlp213`, `kan_generic`, `leo_madrl`, `full`, `no_triplet`, `no_cox_rst`,
+`eph_physick`, and `mlp_coeff`. The no-kernel ablation aliases `mlp213`.
 
-The registry records the design rather than only the reported point estimates.
-It includes:
-
-- FCT-CL: the core two-by-two interface-by-operator factorial, with ten
-  independent runs and 30 held-out episodes per cell;
-- EXP1: two interface contracts, 20 paired seeds per contract, 50 checkpoints
-  per model, five validation-only selection rules, three near-tie strata and
-  six nested reassociation windows;
-- EXP2: the two-phase, eight-cell descriptor-by-staging-by-score-map crossover;
-- EXP3: the four-arm operator-by-objective comparison with 20 paired seeds per
-  arm;
-- EXP4: the completed external-environment quantitative records, explicitly
-  marked as provenance-incomplete in the source-data release; and
-- EXP5: the ordered four-variant message-operator ablation, including the
-  configuration-specific projection radius.
-
-Use the CLI rather than copying values from this page:
+## Run all recorded conditions
 
 ```bash
-python -m controller_facing_state.cli experiments
-python -m controller_facing_state.cli experiments --id EXP1
+cox-physick plan --output results/tcom/experiment_plan.json
+cox-physick run-plan --plan results/tcom/experiment_plan.json \
+  --output runs/tcom/study --device cuda
 ```
 
-The machine-readable registry is the design record exposed by this software
-release.
+The plan contains 190 training jobs and 315 evaluation jobs. Prefixes share a
+single 800-step trajectory, density shifts reuse the corresponding K=100 model,
+hysteresis sweeps reuse weights, and the 17 weight settings have separate
+training jobs. `run-plan --stage train|evaluate --job JOB_ID` selects work.
 
-## Implemented experiment surface
+## Validation
 
-FCT-CL and EXP1, EXP2, EXP3 and EXP5 have executable protocol, analysis or
-model-construction components, frozen configuration records and CPU tests.
-For EXP2, the release implements typed current/causal staging and the two
-score equations explicitly defined in the manuscript (D0 x S0 and D1 x S1).
-The v4 tables do not preserve the field maps for D0 x S1 or D1 x S0. Those
-cross-domain cells therefore fail closed unless a dated author mapping is
-provided through the explicit adapter; this release does not claim to rerun
-the historical eight-cell trajectories from the aggregate tables alone.
-EXP4 remains a quantitative source-data record: its environment identity,
-source version, trace split and field mapping were not recorded, so the
-external evaluation cannot be rerun from this release.
+```bash
+python -m pytest code/tcom/tests -q
+```
 
-The MRG-PPO comparator is implemented as a pure-PyTorch masked recurrent graph
-actor and centralized training-only critic, together with its reward, PPO/GAE
-primitives and frozen budget. The demo verifies 731,905 actor parameters and
-687,233 critic parameters on a CPU forward pass. Its tuning grid and selected
-configuration identifier are recorded, but the v4 ledger does not contain the
-winning numeric learning-rate and entropy-coefficient pair. Those two fields
-remain `null` in `configs/models/mrg_ppo.yaml`; exact MRG-PPO retraining requires
-the corresponding locked run configuration.
+See `results/tcom/verification.json` for the checks actually run for this
+release. Short training/rollout tests validate executable paths and are kept
+separate from the manuscript experiment results.
 
-The public LTT-R, DA-GWM and TGN-PhysiCK constructors are executable structural
-references, not recovered copies of the original frozen checkpoints. Their
-real parameter counts do not equal the five exact identities reported in
-Supplementary Table S11. `leo_pg.paper.model_identity` records the ledger
-targets and refuses to attach a frozen implementation ID unless a real
-constructor matches exactly; it never pads a model with unused parameters.
+The release specifies previously underspecified band, beam and weather rules
+in its environment configuration. Their implementation is complete; assigning
+those choices to historical result records requires the corresponding author
+confirmation. The source-result calculations are reproducible independently
+of that assignment. See [the revision notes](docs/TCOM_REVISION.md).
 
-## Repository layout
+Aggregate newly executed runs with the same statistical units:
 
-- `src/controller_facing_state/`: root demonstration, registry and verification
-  package.
-- `configs/manuscript_v4.yaml`: the shared controller, platform, model and
-  statistical protocol.
-- `configs/experiments_v4.yaml`: the FCT-CL and EXP1--EXP5 design registry.
-- `configs/models/mrg_ppo.yaml`: the MRG-PPO architecture, reward, optimization
-  and interaction-budget contract.
-- `configs/`: manifest schemas and retained research-workflow templates.
-- `code/satellite/`: satellite simulator and MLP, KAN and PhysiCK operator
-  implementations inherited from the upstream research code.
-- `code/satellite/src/leo_pg/paper/extended_experiments.py`: executable EXP1
-  selection/equivalence rules, EXP3 objective and contrast rules, and EXP5
-  operator/diagnostic implementations.
-- `code/satellite/src/leo_pg/paper/crossover.py`: the typed EXP2 registry,
-  staging runner, documented native score bindings and fail-closed adapter for
-  author-supplied cross-domain field maps.
-- `code/satellite/src/leo_pg/paper/model_identity.py`: strict Table S11
-  parameter-ledger audit and exact-identity gate for structural references.
-- `code/satellite/src/leo_pg/paper/mrg_ppo.py`: the MRG-PPO actor, critic,
-  action distribution, reward and optimization primitives.
-- `code/uav/`: UAV shared-service simulator and operator implementations.
-- `code/shared/`: shared records, metrics, seeding and statistical utilities.
-- `scripts/`: run-record collection and aggregation tools retained for the
-  extended research workflow.
-- `tests/`: root release-contract and deterministic demonstration tests;
-  platform-specific suites are under `code/satellite/tests/` and
-  `code/uav/tests/`.
+```bash
+cox-physick summarize-runs --runs runs/tcom/study \
+  --output results/tcom/new_summary
+```
 
-The mapping from manuscript objects to executable modules is in
-[PAPER_TO_CODE_MATRIX.md](PAPER_TO_CODE_MATRIX.md).
-
-## Evidence boundary
-
-The Zenodo archive publishes authoritative checkpoint-level and run-level
-records for the supported analyses. Those records provide the evidence needed
-for independent recalculation, but this repository does not silently convert
-their experiment-specific wide schemas into canonical long records. The root
-verifier establishes archive integrity. Checkpoint
-tensors, state-level training streams and the complete external environment
-used by EXP4 are not included.
-
-## Citation and licence
-
-Please cite the associated manuscript and the version-specific Zenodo record
-used in an analysis. The concept DOI above resolves to the version series;
-Zenodo assigns a separate DOI to each published version. Machine-readable
-software citation metadata are provided in [CITATION.cff](CITATION.cff).
-
-After the version 2.0.0 package is uploaded, freeze the release under a new
-`v2.0.0` tag and cite the immutable commit resolved by that tag. The upstream
-commit `d096a2020649d360dfffc860309a510734ea6033` records the pre-v2 lineage; it
-must not be cited as the version 2.0.0 implementation.
-
-The software in this repository is released under the [MIT License](LICENSE).
-The Zenodo source-data archive retains its own CC BY 4.0 licence.
+This produces wide and long condition summaries and cost contrasts against
+greedy. Duplicate episode prefixes and mismatched test panels are rejected.
+For Anaconda installations with a failing system `readline` extension, tests
+can run with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p no:capture code/tcom/tests -q`.

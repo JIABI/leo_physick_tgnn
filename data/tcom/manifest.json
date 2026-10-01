@@ -1,0 +1,16 @@
+{
+  "conditions": 115,
+  "raw_files": 315,
+  "episode_prefixes": 12690,
+  "author_confirmation": "The author identifies the supplied numerical records as experimental results; inherited source labels are preserved verbatim.",
+  "statistics": "Learning methods: episode means within each training seed, then mean/sample SD of seed means. Rule methods: mean/sample SD across episodes.",
+  "association_encoding": "Archived pair IDs use stride two; this is a storage encoding and does not determine the configured number of beams.",
+  "paths": {
+    "summary": "results_summary.csv",
+    "cases": "case_manifest.csv",
+    "raw": "raw_manifest.csv",
+    "episode_prefixes": "episode_manifest.csv",
+    "calibration_inputs": "archive/v19_diag_retention_inputs.csv",
+    "calibration_records": "archive/sources_kappa"
+  }
+}

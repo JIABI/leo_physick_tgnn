@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: cox-physick-tcom
+Version: 22.0.0
+Summary: TCOM Cox-PhysiCK physical handover controllers and archived-result reproduction
+Requires-Python: >=3.10
+Requires-Dist: numpy>=1.24
+Requires-Dist: scipy>=1.10
+Requires-Dist: PyYAML>=6
+Requires-Dist: torch>=2.0.1
+Requires-Dist: sgp4>=2.23
+Requires-Dist: matplotlib>=3.7
+Provides-Extra: test
+Requires-Dist: pytest>=8; extra == "test"

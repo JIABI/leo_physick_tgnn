@@ -1,0 +1,3 @@
+Source repository: https://github.com/JIABI/leo_physick_tgnn.git
+Fetched commit: 9564248
+The satellite/UAV CFS code is preserved. TCOM additions live in code/tcom; their namespace/config/statistics are independent.

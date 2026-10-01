@@ -1,0 +1,43 @@
+--- v21
++++ v22
+@@ -32,6 +32,7 @@
+ \newtheorem{lemma}{Lemma}             
+ \newtheorem{proposition}{Proposition}  
+ \newtheorem{corollary}{Corollary}[theorem] 
++\usepackage{needspace}
+ \begin{document}
+ \bstctlcite{IEEEcontrol}
+ 
+@@ -1115,7 +1116,7 @@
+ 
+ \revnew{Tables~\ref{tab:traditional_baselines} and~\ref{tab:overall_nominal_summary} compare nominal and 800-step performance. At $H=200$, Cox-PhysiCK lowers mean outage and HOF relative to greedy by $34.7\%$ and $34.8\%$, respectively, with only a modest TP difference and higher PP. Max-SINR+TTT has the highest nominal TP; LEO-MADRL has lower PP and Peak than Cox-PhysiCK. Cox-only improves reliability over greedy but increases switching and reduces TP, distinguishing a direct analytic penalty from learned use of the descriptors.}
+ 
+-\revnew{At nominal $H=200$, pooled counts give Cox-PhysiCK and greedy attempt rates of $9.25\%$ and $4.49\%$ of user--epochs, with $5.51$ and $2.67$ executed HOs per user-minute. Attempt-associated outage occupies $0.0575\%$ and $0.0425\%$ of user--epochs: lower conditional HOF coexists with more failure events per unit user time. Non-attempt outage follows source-retention requests ($0.5425\%$, $0.8732\%$) or access/reacquisition from an empty source ($0.0089\%$, $0.0162\%$). These request states do not identify physical causes. Tables use episode averages (Section~\ref{subsec:metrics}).}
++\revnew{At nominal $H=200$, pooled counts give Cox-PhysiCK and greedy attempt rates of $9.25\%$ and $4.49\%$ of user--epochs, with $5.51$ and $2.67$ executed HOs per user-minute. Attempt-associated outage occupies $0.0575\%$ and $0.0425\%$ of user--epochs: lower conditional HOF coexists with more failure events per unit user time. Non-attempt outage follows source-retention requests ($0.5425\%$, $0.8732\%$) or access/reacquisition from an empty source ($0.0089\%$, $0.0162\%$). No outage with an empty request was recorded in either nominal comparison; the non-attempt categories above therefore exhaust the observed request states. Tables use episode averages (Section~\ref{subsec:metrics}).}
+ 
+ \revnew{At 2000 satellites, Cox-PhysiCK has the lowest observed mean cost at both horizons, but its 95\% cost-difference intervals relative to the fixed greedy mean include zero: $[-0.0209,0.0012]$ at $H=200$ and $[-0.0229,0.0005]$ at $H=800$. Against LEO-MADRL at $H=200$, Cox-PhysiCK has lower observed mean outage and HOF and $2.94$\,Mbps higher TP, with a mean cost difference of $-0.0213$.}
+ 
+@@ -1309,11 +1310,14 @@
+ \end{table*}
+ 
+ 
++\Needspace{10\baselineskip}
++\noindent\begin{minipage}{\columnwidth}
+ \section{Conclusion}
+ \label{sec:conclusion}
+ \revnew{Cox-PhysiCK combines calibrated Cox arrival descriptors with physics-conditioned temporal messages for coupled handover control. In the SGP4-propagated synthetic Walker scenarios, it reduces mean outage and conditional HO failure relative to the TGN baselines at the reported horizons. Its observed gaps from greedy in outage, conditional HO failure, and cost widen at 500 users; the cost gain is driven mainly by outage under $w_o=5$, with higher switching and load penalties. Cox and ephemeris descriptors show mixed performance differences. The analysis provides local perturbation bounds under fixed decision sets. Results concern stationary terminals. Deployment requires updating $\kappa$ from observed entry statistics and aligning SINR/load measurements, admission, and execution with 3GPP reporting and handover timelines; mobile users and multi-layer operation remain future work.}
+ 
+ 
++\end{minipage}
+ \appendices
+ 
+ \section{\textcolor{blue}{Derivation of the Cox Zero-Arrival Probability}}
+@@ -1471,7 +1475,7 @@
+ plus an empty-source indicator. Slots use decreasing frozen SINR, then IDs. Continuous features are standardized; missing/infeasible actions are masked throughout. The ninth action requires an empty feasible set. Requests precede joint execution, followed by one shared minibatch update per epoch after collecting 10,000 user transitions. No additional utility hysteresis or TTT applies. Reward is $-c_k$, discount $0.99$, and the TD target uses the direct target-network maximum. Detached weights of 1 for nonnegative TD error and $0.2$ otherwise multiply Huber$_1$ loss. Adam uses learning rate $10^{-4}$, batch 128, and replay 100,000. Every 1,000 optimizer updates, targets synchronize and checkpoints are evaluated; selection minimizes validation cost among positive checkpoints. Exploration decays linearly from 1 to 0.05 over the first 102,400 of 256,000 epochs, then remains fixed; evaluation disables exploration.
+ 
+ \subsection{Calibration}
+-Calibration and held-out diagnostics use $5\times30$ and $5\times60$ 800\,s traces, respectively, each with 2000 satellites and ten users. The estimator $\widehat\kappa=\sum_j C_j/\sum_j E_j$ uses unfiltered entries and exposure at $\kappa=1$. Ten thousand bootstrap replicates resample complete traces within seeds. The preset $\kappa=0.60$ is fixed before testing. Each user's six windows (10, 30, 60, 120, 240, 480\,s) share a uniformly sampled integer start in $[0,320]$\,s. Diagnostic retention $p_{\rm diag}=F_{\rm diag}/V_{\rm diag}$ uses prescribed count pairs, with zero for an empty denominator. The 3,000 inputs span $[0,1]$ (mean $0.503$), remain fixed across six windows, and differ from the controller estimate in \eqref{eq:p_feas}. Independent uniform marks retain entries with probability $p_{\rm diag}$; no retained entry in $(t,t+T]$ defines a void. These 18,000 windows assess prescribed thinning without controller-generated loads. Plots report mean and sample SD of five seed summaries, equally weighting window lengths.
++Calibration and held-out diagnostics use $5\times30$ and $5\times60$ 800\,s traces, respectively, each with 2000 satellites and ten users. The estimator $\widehat\kappa=\sum_j C_j/\sum_j E_j$ uses unfiltered entries and exposure at $\kappa=1$. Ten thousand bootstrap replicates resample complete traces within seeds. The preset $\kappa=0.60$ is fixed before testing. Each user's six windows (10, 30, 60, 120, 240, 480\,s) share a uniformly sampled integer start in $[0,320]$\,s. Diagnostic retention $p_{\rm diag}=F_{\rm diag}/V_{\rm diag}$ uses prescribed count pairs, with zero for an empty denominator. The 3,000 trace--user count pairs and window mappings are supplied in the accompanying data archive. Their ratios span $[0,1]$ (mean $0.503$), remain fixed across six windows, and differ from \eqref{eq:p_feas}. Independent uniform marks retain entries with probability $p_{\rm diag}$; no retained entry in $(t,t+T]$ defines a void. These 18,000 windows assess prescribed thinning without controller-generated loads. Plots report mean and sample SD of five seed summaries, equally weighting window lengths.
+ 
+ \endgroup
+ 

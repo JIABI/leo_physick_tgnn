@@ -1,0 +1,31 @@
+﻿parameter,value,unit,record_type,definition,source_record,applied_to_existing_results
+capacity_per_satellite,10,users,existing_protocol_value,Existing per-satellite capacity,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+subband_index_min,0,index,prospective_rule_assumption,Zero-based labels for ten orthogonal bands; labeling convention,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+subband_index_max,9,index,prospective_rule_assumption,Zero-based labels for ten orthogonal bands; labeling convention,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+candidate_budget,8,candidates,existing_protocol_value,Existing shared candidate budget,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+beam_count,7,beams/satellite,existing_protocol_value,Existing number of beam identifiers,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+maximum_enabled_beams,4,beams/satellite,existing_protocol_value,Existing enabled-beam cap,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+beam_target_hold_seconds,20,s,existing_protocol_value,Existing exogenous plan update interval,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+decision_interval_seconds,1,s,existing_protocol_value,Existing execution interval,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+receiver_peak_gain_dBi,35,dBi,existing_protocol_value,Existing receiver peak antenna gain,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+receiver_full_3dB_width_deg,3,deg,existing_protocol_value,Existing receiver pattern width,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+rain_probability,0.1,probability,existing_protocol_value,Existing marginal probability; does not identify correlation,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+clear_to_blocked_probability,0.005263,probability/step,existing_protocol_value,Existing Markov transition,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+blocked_to_clear_probability,0.1,probability/step,existing_protocol_value,Existing Markov transition,../../../v19_followup_experiment_pack_20261001/02_physical_rules/current_parameters.csv,0
+physical_check_rounds,1,rounds/epoch,prospective_rule_assumption,Proposal: one synchronous physical check,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+readmission_rounds_after_check,0,rounds/epoch,prospective_rule_assumption,Proposal: no new admission after physical rejection,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+source_fallback_after_failed_physical_check,0,attempts/epoch,prospective_rule_assumption,Proposal: no second source fallback after the check,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+reuse_outbound_reserved_band_same_epoch,0,boolean,prospective_rule_assumption,Proposal: no reuse of released outbound source reservation this epoch,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+planning_point_count,500,points,prospective_rule_assumption,"Proposal: fixed nested planning population, independent of actions",../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+beam_planning_half_angle_deg,1,deg,prospective_rule_assumption,"Proposal: coverage objective only, not a service cutoff",../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+pointing_jitter_deg,0,deg,prospective_rule_assumption,Proposal: ideal electronically steered receiver,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+additional_retuning_delay_seconds,0,s,prospective_rule_assumption,Proposal: no extra delay beyond declared handover overhead,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+rain_draws_per_user_per_episode,1,draws,prospective_rule_assumption,Proposal: fixed rain state per user within an episode,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+rain_link_correlation_same_user,1,correlation,prospective_rule_assumption,Proposal: all links to one receiver share its rain state,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+rain_correlation_different_users,0,correlation,prospective_rule_assumption,Proposal: independent rain draws across users,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+blockage_link_correlation_same_user,1,correlation,prospective_rule_assumption,Proposal: receiver-local blockage state shared across links,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+blockage_correlation_different_users,0,correlation,prospective_rule_assumption,Proposal: independent receiver Markov chains,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+stationary_blockage_probability,0.0499985749978625,probability,derived_under_stated_rule_assumption,Stationary initialization under the proposed per-user chain,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+blockage_lag1_correlation,0.894737,correlation,derived_under_stated_rule_assumption,"Stationary two-state chain, one-second steps",../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+expected_blocked_duration_seconds,10,s,derived_under_stated_rule_assumption,Geometric dwell mean including current blocked step,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0
+expected_clear_duration_seconds,190.00570017100512,s,derived_under_stated_rule_assumption,Geometric dwell mean including current clear step,../../../v19_followup_experiment_pack_20261001/02_physical_rules/rules_to_confirm.csv,0

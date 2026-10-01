@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "n_retention_inputs": 3000,
+  "n_windows": 18000,
+  "n_entry_mark_checks": 72427,
+  "n_summary_checks": 30,
+  "kappa_hat": 0.6033009312876608,
+  "retention_mean": 0.5029890879594723,
+  "errors": [],
+  "scope": "Finite-input prescribed-thinning arrival diagnostic; no closed-loop load calibration."
+}

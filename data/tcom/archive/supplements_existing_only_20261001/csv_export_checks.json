@@ -1,0 +1,59 @@
+{
+  "status": "pass",
+  "files": [
+    {
+      "file": "01_tgn_existing_test_context_30.csv",
+      "rows": 30,
+      "columns": 36,
+      "readback": "pass"
+    },
+    {
+      "file": "02_greedy_validation_components_30.csv",
+      "rows": 30,
+      "columns": 13,
+      "readback": "pass"
+    },
+    {
+      "file": "03_current_drl_coverage_35.csv",
+      "rows": 35,
+      "columns": 27,
+      "readback": "pass"
+    },
+    {
+      "file": "04_existing_episode_accounting_visibility_12690.csv",
+      "rows": 12690,
+      "columns": 28,
+      "readback": "pass"
+    },
+    {
+      "file": "05_R1_rules_reference.csv",
+      "rows": 7,
+      "columns": 8,
+      "readback": "pass"
+    },
+    {
+      "file": "06_R1_numeric_rule_reference.csv",
+      "rows": 30,
+      "columns": 7,
+      "readback": "pass"
+    },
+    {
+      "file": "07_current_DQN_declared_mechanism.csv",
+      "rows": 26,
+      "columns": 5,
+      "readback": "pass"
+    },
+    {
+      "file": "08_remaining_record_gaps.csv",
+      "rows": 4,
+      "columns": 5,
+      "readback": "pass"
+    },
+    {
+      "file": "00_addendum_index.csv",
+      "rows": 8,
+      "columns": 5,
+      "readback": "pass"
+    }
+  ]
+}

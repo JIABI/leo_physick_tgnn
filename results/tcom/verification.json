@@ -1,0 +1,51 @@
+{
+  "tests": {
+    "passed": 42,
+    "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p no:capture -q code/tcom/tests"
+  },
+  "archive": {
+    "status": "passed",
+    "mode": "raw_array_reduction",
+    "conditions": 115,
+    "episode_prefixes": 12690,
+    "checks": {
+      "raw_files_reduced": 315,
+      "episode_field": 152280,
+      "outage_partition": 12690,
+      "episode_coverage": 115,
+      "condition_summary": 6555
+    },
+    "discrepancy_count": 0,
+    "discrepancies": [],
+    "scope": "Numerical execution metrics, aggregation, occupancy and event accounting; geometric visibility and historical training are outside this reduction."
+  },
+  "calibration": {
+    "status": "passed",
+    "n_retention_inputs": 3000,
+    "n_windows": 18000,
+    "n_entry_mark_checks": 72427,
+    "n_summary_checks": 30,
+    "kappa_hat": 0.6033009312876608,
+    "retention_mean": 0.5029890879594723,
+    "errors": [],
+    "scope": "Finite-input prescribed-thinning arrival diagnostic; no closed-loop load calibration."
+  },
+  "functional_training": [
+    "PhysiCK",
+    "adapted hysteretic DQN",
+    "Ephemeris-PhysiCK"
+  ],
+  "training_scope": "Short physical integration: train, validate, save/load, evaluate. Full publication training was not rerun.",
+  "tested_device": "CPU",
+  "versions": {
+    "python": "3.11.5",
+    "torch": "2.5.1",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "sgp4": "2.25",
+    "pyyaml": "6.0",
+    "platform": "macOS-14.7.6-arm64-arm-64bit"
+  },
+  "upstream_commit": "9564248",
+  "remote_published": false
+}

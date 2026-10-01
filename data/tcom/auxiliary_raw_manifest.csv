@@ -1,0 +1,4 @@
+raw_file,role,included_in_315_test_files
+raw/analytic_validation_N500.npz,supplied analytic-validation auxiliary archive; preserved without checkpoint investigation,False
+raw/analytic_validation_N1000.npz,supplied analytic-validation auxiliary archive; preserved without checkpoint investigation,False
+raw/analytic_validation_N2000.npz,supplied analytic-validation auxiliary archive; preserved without checkpoint investigation,False

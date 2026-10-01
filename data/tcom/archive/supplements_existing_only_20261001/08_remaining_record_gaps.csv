@@ -1,0 +1,5 @@
+﻿item,added,still_missing,historical_gap_closed,reason
+R1.8/R1.11,Rule reference and explicit numeric choices; existing event-accounting supplements,"Historical candidate bands, resource-order stages, beam/weather/pointing execution traces",0,Many hidden link/resource processes can produce the same aggregate outcomes
+R2.1,"Current adapted-DQN declaration and existing test coverage, with no new scores",Verified original successive recurrence and an implementation comparison if that claim is required,0,Existing adapted-DQN scores do not identify or verify a different algorithm
+TGN selection,Existing test diagnostic and Greedy validation components; step0 remains excluded,Thirty actual selected updates and selected-checkpoint validation costs,0,Neither selection time nor validation cost is identifiable from held-out test scores
+Physical visibility,Necessary visibility lower bounds from the existing executed occupancy,"Matching satellite/user coordinates, beam targets and per-link physical powers",0,Occupancy capacity is necessary but does not prove geometric visibility

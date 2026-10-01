@@ -1,0 +1,113 @@
+﻿special_id,artifact,method_id,setting,config_id,metric,mean,sample_sd,unit,aggregation_unit,source_id,source_row,evidence_status,ci95_low,ci95_high,n_traces,n_bootstrap,ci_method,dataset_role,current_revision_use
+V12S017,Fig. 9,full,w_o × 0.5,w_o_0.5,outage_percent_paired_ratio,1.3441279811815694,0.0078589834857666,ratio,training_seed_paired_ratio,S09,2,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S018,Fig. 9,full,w_o × 0.5,w_o_0.5,hof_percent_paired_ratio,0.884455563420803,0.0185747765323726,ratio,training_seed_paired_ratio,S09,2,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S019,Fig. 9,full,w_o × 0.5,w_o_0.5,pp_percent_paired_ratio,0.8430071024268824,0.0039595157405969,ratio,training_seed_paired_ratio,S09,2,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S020,Fig. 9,full,w_o × 0.5,w_o_0.5,peak_normalized_paired_ratio,0.9982056235799855,0.0179872565342042,ratio,training_seed_paired_ratio,S09,2,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S021,Fig. 9,full,w_o × 0.5,w_o_0.5,tp_Mbps_paired_ratio,1.0121944283282849,0.0005228657344625,ratio,training_seed_paired_ratio,S09,2,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S022,Fig. 9,full,w_o × 0.75,w_o_0.75,outage_percent_paired_ratio,1.1477897161733497,0.0035670645165784,ratio,training_seed_paired_ratio,S09,3,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S023,Fig. 9,full,w_o × 0.75,w_o_0.75,hof_percent_paired_ratio,0.9369564238898191,0.0145178901030854,ratio,training_seed_paired_ratio,S09,3,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S024,Fig. 9,full,w_o × 0.75,w_o_0.75,pp_percent_paired_ratio,0.9183790196125396,0.0031372268886052,ratio,training_seed_paired_ratio,S09,3,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S025,Fig. 9,full,w_o × 0.75,w_o_0.75,peak_normalized_paired_ratio,0.9953625955180015,0.0099306469307444,ratio,training_seed_paired_ratio,S09,3,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S026,Fig. 9,full,w_o × 0.75,w_o_0.75,tp_Mbps_paired_ratio,1.00622705453244,0.0002471995089829,ratio,training_seed_paired_ratio,S09,3,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S027,Fig. 9,full,w_o × 1.25,w_o_1.25,outage_percent_paired_ratio,0.8782181249547275,0.0051006765571283,ratio,training_seed_paired_ratio,S09,4,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S028,Fig. 9,full,w_o × 1.25,w_o_1.25,hof_percent_paired_ratio,1.0723804138969766,0.0158772320177333,ratio,training_seed_paired_ratio,S09,4,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S029,Fig. 9,full,w_o × 1.25,w_o_1.25,pp_percent_paired_ratio,1.0884687759381544,0.0026641689846265,ratio,training_seed_paired_ratio,S09,4,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S030,Fig. 9,full,w_o × 1.25,w_o_1.25,peak_normalized_paired_ratio,0.9890561630374644,0.0281198271617371,ratio,training_seed_paired_ratio,S09,4,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S031,Fig. 9,full,w_o × 1.25,w_o_1.25,tp_Mbps_paired_ratio,0.9936517457622804,0.0002767226296566,ratio,training_seed_paired_ratio,S09,4,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S032,Fig. 9,full,w_o × 1.5,w_o_1.5,outage_percent_paired_ratio,0.7897755072318308,0.0044214196551542,ratio,training_seed_paired_ratio,S09,5,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S033,Fig. 9,full,w_o × 1.5,w_o_1.5,hof_percent_paired_ratio,1.149390686540074,0.0201311736850002,ratio,training_seed_paired_ratio,S09,5,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S034,Fig. 9,full,w_o × 1.5,w_o_1.5,pp_percent_paired_ratio,1.185669144207386,0.0048988876707414,ratio,training_seed_paired_ratio,S09,5,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S035,Fig. 9,full,w_o × 1.5,w_o_1.5,peak_normalized_paired_ratio,1.0044643994408278,0.0093025476502843,ratio,training_seed_paired_ratio,S09,5,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S036,Fig. 9,full,w_o × 1.5,w_o_1.5,tp_Mbps_paired_ratio,0.9871186101769748,0.0005623607432049,ratio,training_seed_paired_ratio,S09,5,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S037,Fig. 9,full,w_o × 1.0,DEFAULT,outage_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,6,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S038,Fig. 9,full,w_o × 1.0,DEFAULT,hof_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,6,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S039,Fig. 9,full,w_o × 1.0,DEFAULT,pp_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,6,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S040,Fig. 9,full,w_o × 1.0,DEFAULT,peak_normalized_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,6,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S041,Fig. 9,full,w_o × 1.0,DEFAULT,tp_Mbps_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,6,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S042,Fig. 9,full,w_h × 0.5,w_h_0.5,outage_percent_paired_ratio,0.8868411268947847,0.0099589268123119,ratio,training_seed_paired_ratio,S09,7,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S043,Fig. 9,full,w_h × 0.5,w_h_0.5,hof_percent_paired_ratio,1.0032183197173106,0.0290018500276296,ratio,training_seed_paired_ratio,S09,7,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S044,Fig. 9,full,w_h × 0.5,w_h_0.5,pp_percent_paired_ratio,1.7165321468967654,0.0044399604672793,ratio,training_seed_paired_ratio,S09,7,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S045,Fig. 9,full,w_h × 0.5,w_h_0.5,peak_normalized_paired_ratio,0.987930278559694,0.022869845569485,ratio,training_seed_paired_ratio,S09,7,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S046,Fig. 9,full,w_h × 0.5,w_h_0.5,tp_Mbps_paired_ratio,1.0221382401680454,0.0008607166327091,ratio,training_seed_paired_ratio,S09,7,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S047,Fig. 9,full,w_h × 0.75,w_h_0.75,outage_percent_paired_ratio,0.9330759659275704,0.0038731276503134,ratio,training_seed_paired_ratio,S09,8,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S048,Fig. 9,full,w_h × 0.75,w_h_0.75,hof_percent_paired_ratio,1.0051857652907383,0.0058179363871618,ratio,training_seed_paired_ratio,S09,8,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S049,Fig. 9,full,w_h × 0.75,w_h_0.75,pp_percent_paired_ratio,1.3109518713712305,0.0046631827948922,ratio,training_seed_paired_ratio,S09,8,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S050,Fig. 9,full,w_h × 0.75,w_h_0.75,peak_normalized_paired_ratio,1.0015437750513323,0.0338727937794574,ratio,training_seed_paired_ratio,S09,8,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S051,Fig. 9,full,w_h × 0.75,w_h_0.75,tp_Mbps_paired_ratio,1.0111430267237376,0.00041260887343,ratio,training_seed_paired_ratio,S09,8,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S052,Fig. 9,full,w_h × 1.25,w_h_1.25,outage_percent_paired_ratio,1.082783706720964,0.0028696948657889,ratio,training_seed_paired_ratio,S09,9,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S053,Fig. 9,full,w_h × 1.25,w_h_1.25,hof_percent_paired_ratio,1.000758258280826,0.0162722764090299,ratio,training_seed_paired_ratio,S09,9,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S054,Fig. 9,full,w_h × 1.25,w_h_1.25,pp_percent_paired_ratio,0.7649692004158961,0.0037196593833975,ratio,training_seed_paired_ratio,S09,9,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S055,Fig. 9,full,w_h × 1.25,w_h_1.25,peak_normalized_paired_ratio,1.0086468713379817,0.017736745801357,ratio,training_seed_paired_ratio,S09,9,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S056,Fig. 9,full,w_h × 1.25,w_h_1.25,tp_Mbps_paired_ratio,0.9887193942038176,0.0004412400586775,ratio,training_seed_paired_ratio,S09,9,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S057,Fig. 9,full,w_h × 1.5,w_h_1.5,outage_percent_paired_ratio,1.1882990772096775,0.0047242785551917,ratio,training_seed_paired_ratio,S09,10,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S058,Fig. 9,full,w_h × 1.5,w_h_1.5,hof_percent_paired_ratio,0.9997651186352589,0.0117147662547854,ratio,training_seed_paired_ratio,S09,10,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S059,Fig. 9,full,w_h × 1.5,w_h_1.5,pp_percent_paired_ratio,0.5851916757468595,0.0064935164604668,ratio,training_seed_paired_ratio,S09,10,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S060,Fig. 9,full,w_h × 1.5,w_h_1.5,peak_normalized_paired_ratio,1.0027552330239415,0.0266573534802844,ratio,training_seed_paired_ratio,S09,10,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S061,Fig. 9,full,w_h × 1.5,w_h_1.5,tp_Mbps_paired_ratio,0.9773113957507796,0.0008648268648954,ratio,training_seed_paired_ratio,S09,10,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S062,Fig. 9,full,w_h × 1.0,DEFAULT,outage_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,11,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S063,Fig. 9,full,w_h × 1.0,DEFAULT,hof_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,11,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S064,Fig. 9,full,w_h × 1.0,DEFAULT,pp_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,11,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S065,Fig. 9,full,w_h × 1.0,DEFAULT,peak_normalized_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,11,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S066,Fig. 9,full,w_h × 1.0,DEFAULT,tp_Mbps_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,11,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S067,Fig. 9,full,w_l × 0.5,w_l_0.5,outage_percent_paired_ratio,1.0176281404220706,0.012751330549959,ratio,training_seed_paired_ratio,S09,12,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S068,Fig. 9,full,w_l × 0.5,w_l_0.5,hof_percent_paired_ratio,1.2893163574619613,0.0754331124116243,ratio,training_seed_paired_ratio,S09,12,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S069,Fig. 9,full,w_l × 0.5,w_l_0.5,pp_percent_paired_ratio,0.7675985253952463,0.0064216450477119,ratio,training_seed_paired_ratio,S09,12,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S070,Fig. 9,full,w_l × 0.5,w_l_0.5,peak_normalized_paired_ratio,0.991252008568497,0.0185859817275335,ratio,training_seed_paired_ratio,S09,12,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S071,Fig. 9,full,w_l × 0.5,w_l_0.5,tp_Mbps_paired_ratio,1.0228660294845866,0.0008715370149999,ratio,training_seed_paired_ratio,S09,12,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S072,Fig. 9,full,w_l × 0.75,w_l_0.75,outage_percent_paired_ratio,1.0114410421700728,0.0082487816953642,ratio,training_seed_paired_ratio,S09,13,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S073,Fig. 9,full,w_l × 0.75,w_l_0.75,hof_percent_paired_ratio,1.1480945833194929,0.0422289307021424,ratio,training_seed_paired_ratio,S09,13,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S074,Fig. 9,full,w_l × 0.75,w_l_0.75,pp_percent_paired_ratio,0.8730261127592949,0.0038671532275196,ratio,training_seed_paired_ratio,S09,13,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S075,Fig. 9,full,w_l × 0.75,w_l_0.75,peak_normalized_paired_ratio,0.9982187076697198,0.0258402766713647,ratio,training_seed_paired_ratio,S09,13,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S076,Fig. 9,full,w_l × 0.75,w_l_0.75,tp_Mbps_paired_ratio,1.0115582344591196,0.0004283818168289,ratio,training_seed_paired_ratio,S09,13,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S077,Fig. 9,full,w_l × 1.25,w_l_1.25,outage_percent_paired_ratio,0.9954164400277292,0.004765344071261,ratio,training_seed_paired_ratio,S09,14,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S078,Fig. 9,full,w_l × 1.25,w_l_1.25,hof_percent_paired_ratio,0.9002273111395758,0.0194648204414112,ratio,training_seed_paired_ratio,S09,14,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S079,Fig. 9,full,w_l × 1.25,w_l_1.25,pp_percent_paired_ratio,1.1385105375692046,0.0045245334642703,ratio,training_seed_paired_ratio,S09,14,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S080,Fig. 9,full,w_l × 1.25,w_l_1.25,peak_normalized_paired_ratio,0.9852120972840468,0.0330883053247072,ratio,training_seed_paired_ratio,S09,14,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S081,Fig. 9,full,w_l × 1.25,w_l_1.25,tp_Mbps_paired_ratio,0.9882255671289027,0.0004817680548506,ratio,training_seed_paired_ratio,S09,14,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S082,Fig. 9,full,w_l × 1.5,w_l_1.5,outage_percent_paired_ratio,0.9885590757069248,0.003421363897471,ratio,training_seed_paired_ratio,S09,15,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S083,Fig. 9,full,w_l × 1.5,w_l_1.5,hof_percent_paired_ratio,0.801380935798278,0.0120246937609459,ratio,training_seed_paired_ratio,S09,15,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S084,Fig. 9,full,w_l × 1.5,w_l_1.5,pp_percent_paired_ratio,1.2949679286428002,0.00418761879227,ratio,training_seed_paired_ratio,S09,15,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S085,Fig. 9,full,w_l × 1.5,w_l_1.5,peak_normalized_paired_ratio,0.9857437464680764,0.0096458957551565,ratio,training_seed_paired_ratio,S09,15,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S086,Fig. 9,full,w_l × 1.5,w_l_1.5,tp_Mbps_paired_ratio,0.9764464833312808,0.0009443501968441,ratio,training_seed_paired_ratio,S09,15,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S087,Fig. 9,full,w_l × 1.0,DEFAULT,outage_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,16,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S088,Fig. 9,full,w_l × 1.0,DEFAULT,hof_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,16,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S089,Fig. 9,full,w_l × 1.0,DEFAULT,pp_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,16,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S090,Fig. 9,full,w_l × 1.0,DEFAULT,peak_normalized_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,16,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S091,Fig. 9,full,w_l × 1.0,DEFAULT,tp_Mbps_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,16,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S092,Fig. 9,full,w_r × 0.5,w_r_0.5,outage_percent_paired_ratio,1.0287936220817038,0.0034058831922244,ratio,training_seed_paired_ratio,S09,17,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S093,Fig. 9,full,w_r × 0.5,w_r_0.5,hof_percent_paired_ratio,0.8196089177705594,0.0163845581450247,ratio,training_seed_paired_ratio,S09,17,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S094,Fig. 9,full,w_r × 0.5,w_r_0.5,pp_percent_paired_ratio,0.7890349400271678,0.003101334734896,ratio,training_seed_paired_ratio,S09,17,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S095,Fig. 9,full,w_r × 0.5,w_r_0.5,peak_normalized_paired_ratio,0.9971700350079058,0.0237958781048549,ratio,training_seed_paired_ratio,S09,17,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S096,Fig. 9,full,w_r × 0.5,w_r_0.5,tp_Mbps_paired_ratio,0.9616744187795896,0.001516057755173,ratio,training_seed_paired_ratio,S09,17,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S097,Fig. 9,full,w_r × 0.75,w_r_0.75,outage_percent_paired_ratio,1.009870865279801,0.0047981656859836,ratio,training_seed_paired_ratio,S09,18,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S098,Fig. 9,full,w_r × 0.75,w_r_0.75,hof_percent_paired_ratio,0.90835200556149,0.0195113767346658,ratio,training_seed_paired_ratio,S09,18,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S099,Fig. 9,full,w_r × 0.75,w_r_0.75,pp_percent_paired_ratio,0.8878915725286912,0.0037787966783538,ratio,training_seed_paired_ratio,S09,18,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S100,Fig. 9,full,w_r × 0.75,w_r_0.75,peak_normalized_paired_ratio,0.9956889843244812,0.0114288845114794,ratio,training_seed_paired_ratio,S09,18,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S101,Fig. 9,full,w_r × 0.75,w_r_0.75,tp_Mbps_paired_ratio,0.9808584156401772,0.0007847670180883,ratio,training_seed_paired_ratio,S09,18,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S102,Fig. 9,full,w_r × 1.25,w_r_1.25,outage_percent_paired_ratio,1.0012878240194998,0.0063319867484001,ratio,training_seed_paired_ratio,S09,19,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S103,Fig. 9,full,w_r × 1.25,w_r_1.25,hof_percent_paired_ratio,1.1254023916086136,0.0366901671034946,ratio,training_seed_paired_ratio,S09,19,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S104,Fig. 9,full,w_r × 1.25,w_r_1.25,pp_percent_paired_ratio,1.1282038607799516,0.0130583685610061,ratio,training_seed_paired_ratio,S09,19,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S105,Fig. 9,full,w_r × 1.25,w_r_1.25,peak_normalized_paired_ratio,0.991993535360223,0.0277329770824172,ratio,training_seed_paired_ratio,S09,19,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S106,Fig. 9,full,w_r × 1.25,w_r_1.25,tp_Mbps_paired_ratio,1.0190184928650594,0.0007690503454034,ratio,training_seed_paired_ratio,S09,19,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S107,Fig. 9,full,w_r × 1.5,w_r_1.5,outage_percent_paired_ratio,1.0087287214772245,0.0082387580834326,ratio,training_seed_paired_ratio,S09,20,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S108,Fig. 9,full,w_r × 1.5,w_r_1.5,hof_percent_paired_ratio,1.2621781427681271,0.0221627960863785,ratio,training_seed_paired_ratio,S09,20,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S109,Fig. 9,full,w_r × 1.5,w_r_1.5,pp_percent_paired_ratio,1.2647912785919524,0.0049423262541458,ratio,training_seed_paired_ratio,S09,20,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S110,Fig. 9,full,w_r × 1.5,w_r_1.5,peak_normalized_paired_ratio,0.9777459786497704,0.0177367321155435,ratio,training_seed_paired_ratio,S09,20,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S111,Fig. 9,full,w_r × 1.5,w_r_1.5,tp_Mbps_paired_ratio,1.0380002840028584,0.0014841526338571,ratio,training_seed_paired_ratio,S09,20,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S112,Fig. 9,full,w_r × 1.0,DEFAULT,outage_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,21,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S113,Fig. 9,full,w_r × 1.0,DEFAULT,hof_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,21,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S114,Fig. 9,full,w_r × 1.0,DEFAULT,pp_percent_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,21,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S115,Fig. 9,full,w_r × 1.0,DEFAULT,peak_normalized_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,21,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S116,Fig. 9,full,w_r × 1.0,DEFAULT,tp_Mbps_paired_ratio,1,0,ratio,training_seed_paired_ratio,S09,21,现稿报告值；与控制器性能结果分开,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S117,Fig. 5,mlp128,N2000 K100 H50; pooled 750000 user-epochs,,zero_mass,0.056476,,fraction,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S118,Fig. 5,mlp128,N2000 K100 H50; pooled 750000 user-epochs,,pooled_unconditional_p5_Mbps,0,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S119,Fig. 5,mlp128,N2000 K100 H50; pooled 750000 user-epochs,,min_positive_Mbps,20,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S120,Fig. 5,mlp128,N2000 K100 H50; pooled 750000 user-epochs,,samples,750000,,count,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S121,Fig. 5,kan_generic,N2000 K100 H50; pooled 750000 user-epochs,,zero_mass,0.0585653333333333,,fraction,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S122,Fig. 5,kan_generic,N2000 K100 H50; pooled 750000 user-epochs,,pooled_unconditional_p5_Mbps,0,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S123,Fig. 5,kan_generic,N2000 K100 H50; pooled 750000 user-epochs,,min_positive_Mbps,20,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S124,Fig. 5,kan_generic,N2000 K100 H50; pooled 750000 user-epochs,,samples,750000,,count,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S125,Fig. 5,full,N2000 K100 H50; pooled 750000 user-epochs,,zero_mass,0.004644,,fraction,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S126,Fig. 5,full,N2000 K100 H50; pooled 750000 user-epochs,,pooled_unconditional_p5_Mbps,146.36402893066406,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S127,Fig. 5,full,N2000 K100 H50; pooled 750000 user-epochs,,min_positive_Mbps,20,,Mbps,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD
+V12S128,Fig. 5,full,N2000 K100 H50; pooled 750000 user-epochs,,samples,750000,,count,pooled_user_epochs,S10,,合并CDF摘要；不代表seed均值SD,,,,,,历史权重或CDF，仅作旧版对照,使用v14对应图，不混用旧默认值或SD

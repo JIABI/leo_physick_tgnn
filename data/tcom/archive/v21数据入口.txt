@@ -1,0 +1,12 @@
+v21 数据入口
+
+沿用v20全部主结果、模型验证对应、κ诊断与权重扫描数据，详见v20数据入口.txt。本轮没有替换任何实验均值或SD。
+
+本轮仅增加两份派生统计：
+v21_nonattempt_request_state_decomposition.json：名义Full和Greedy的非尝试中断请求状态分解，含逐episode记录和六个原NPZ来源。
+v21_hysteresis_execution_frequency.json：Full、Greedy、Cox-only在四个迟滞阈值下的执行HO/用户分钟及sample SD。
+
+请求状态分解不等于物理故障原因。本文将outage作为总体可靠性主指标，同时保留条件HOF、尝试率及执行HO频率来解释取舍。
+已有诊断p_diag继续作为规定输入；当前记录不能将其筛选规则指定为“仅SINR”或“包含执行负载”。
+
+主结果的学习方法SD仍跨五个训练seed均值；规则方法SD跨有效episode。此次分解用pooled事件计数，只报告占全部用户—epoch的比例，不充当新的独立训练重复或置信区间。

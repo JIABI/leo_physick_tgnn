@@ -1,0 +1,1 @@
+These are short functional test configurations and logs, not paper results. Full temporary test executions are stored outside the public package in v22_code_validation_20261001. No short-test checkpoints are distributed as pretrained paper models.

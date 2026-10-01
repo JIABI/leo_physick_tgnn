@@ -1,0 +1,17 @@
+v18统一数据说明
+
+控制器结果继续使用01_统一主结果_115条件.csv；本轮没有改变其中均值或SD。source_records/02_to_fill/episode_results.csv为此次事件/成本分项重汇总的逐episode输入。共115条件、12,690条episode记录；与已有总账的2070项数值核对一致。
+
+v18_event_cost_ledger_115conditions.csv：逐条件的Outage、HOF、PP、Peak、TP、Cbar、Lbar、四个加权成本分项、总J及事件频率；均带各自聚合口径的sample SD。
+v18_event_cost_aggregation_units.csv：学习方法的seed均值或确定性方法的episode值。
+v18_event_pooled_counts_115conditions.csv：N、O、A、F、执行HO等整组计数，供检查事件关系；pooled F/A不替代论文采用的episode平均HOF。
+v18_Fig3_density_points.csv：正文Fig.3逐图点，八方法×四密度×六指标，含有效样本数与聚合层级。
+v18_Fig4_kappa_points.csv：正文Fig.4逐图点，独立环境seed下六窗长宏平均。
+v18_Fig5_weight_ratio_plot_points.csv：正文Fig.5四面板的100个显示点，共享名义参考在各面板重复；v18_Fig5_weight_ratio_points.csv为85个去重条件-指标点。
+
+06_权重配对比值汇总.csv保留原权重比值记录；05_配对成本差.csv保留来源计算，学习方法间比较在正文仅作描述，不把seed编号相同当作统计配对的充分依据。
+10_独立κ校准与敏感性.csv及sources_kappa用于独立校准，旧来源表中的Fig.8对应当前正文Fig.4。其labels由几何进入事件上的冻结概率独立筛选得到，不是控制器产生的未来SINR/load标签。
+07_CDF频数.csv保留原数据备查，本轮正文未增画CDF。
+
+学习方法的SD跨五个训练seed均值；确定性方法SD跨30个episode；它们不是同一种重复单位。成本分项SD不能直接相加，J的SD按完整逐episode/seed成本重算。
+所有文件仍保留作者提供的原始数值。本轮只完成数值一致性、事件恒等式和文稿对应检查，未重新执行训练。
